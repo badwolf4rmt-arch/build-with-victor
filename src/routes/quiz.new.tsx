@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, ImagePlus, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
@@ -26,6 +26,7 @@ function Editor() {
   const [quiz, setQuiz] = useState<Draft>(EMPTY);
   const [imageFor, setImageFor] = useState<number | null>(null);
   const [replaceFor, setReplaceFor] = useState<number | null>(null);
+  const [coverOpen, setCoverOpen] = useState(false);
 
   useEffect(() => {
     const d = loadDraft();
@@ -41,7 +42,7 @@ function Editor() {
 
   function save() {
     if (!quiz.title.trim()) return toast.error("Введите название викторины");
-    addQuizToLibrary(quiz.title.trim(), quiz.questions.length);
+    addQuizToLibrary(quiz.title.trim(), quiz.questions.length, quiz.cover);
     toast.success("Викторина сохранена");
     navigate({ to: "/" });
   }
@@ -62,7 +63,15 @@ function Editor() {
 
       <main className="mx-auto mt-6 max-w-[1278px] px-4 xl:px-0">
         <section className="overflow-hidden rounded-[32px] bg-card">
-          <div className="h-[220px] bg-quiz-gradient md:h-[340px]" />
+          <div className="relative h-[220px] bg-quiz-gradient md:h-[340px]">
+            {quiz.cover && <img src={quiz.cover} alt="Обложка викторины" className="h-full w-full object-cover" />}
+            <button
+              onClick={() => setCoverOpen(true)}
+              className="absolute right-4 top-4 flex h-12 items-center gap-2 rounded-xl bg-card px-4 text-sm font-semibold shadow-card hover:bg-secondary"
+            >
+              <Pencil className="size-5" /> Изменить обложку
+            </button>
+          </div>
           <div className="-mt-12 rounded-t-[32px] bg-card p-8">
             <input
               value={quiz.title}
@@ -192,6 +201,15 @@ function Editor() {
         </section>
       </main>
 
+      <AddImageFlow
+        open={coverOpen}
+        onOpenChange={setCoverOpen}
+        title="Изменение обложки"
+        cropTitle="Установка обложки"
+        cropDescription="Выберите область, которая будет видна на обложке"
+        aspect={1278 / 340}
+        onDone={(img) => setQuiz((q) => ({ ...q, cover: img.src }))}
+      />
       <AddImageFlow
         open={imageFor !== null}
         onOpenChange={(o) => !o && setImageFor(null)}

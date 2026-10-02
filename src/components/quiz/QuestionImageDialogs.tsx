@@ -13,9 +13,9 @@ import { Modal } from "./Modal";
 const MAX_BYTES = 150 * 1024 * 1024;
 const ACCEPT = "image/jpeg,image/png,image/tiff,image/heic,image/webp,image/gif";
 const READY = [
-  { src: leaf, name: "Природа" },
-  { src: recycle, name: "Сортировка" },
-  { src: globe, name: "Планета" },
+  { src: leaf, name: "Природа, лист, экология" },
+  { src: recycle, name: "Сортировка, мусор, переработка" },
+  { src: globe, name: "Планета, Земля, география" },
 ];
 
 type Source = { src: string; name: string; type: string };
@@ -32,10 +32,18 @@ export function AddImageFlow({
   open,
   onOpenChange,
   onDone,
+  title = "Добавление изображения",
+  cropTitle = "Обрезать изображение",
+  cropDescription = "Выберите область, которая будет показана в вопросе",
+  aspect = 4 / 3,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onDone: (img: QuestionImage) => void;
+  title?: string;
+  cropTitle?: string;
+  cropDescription?: string;
+  aspect?: number;
 }) {
   const [source, setSource] = useState<Source | null>(null);
 
@@ -46,10 +54,13 @@ export function AddImageFlow({
 
   return (
     <>
-      <PickImageModal open={open && !source} onOpenChange={(o) => !o && close()} onPick={setSource} />
+      <PickImageModal title={title} open={open && !source} onOpenChange={(o) => !o && close()} onPick={setSource} />
       {source && (
         <CropModal
           source={source}
+          title={cropTitle}
+          description={cropDescription}
+          aspect={aspect}
           onBack={() => setSource(null)}
           onClose={close}
           onDone={(img) => {
@@ -63,10 +74,12 @@ export function AddImageFlow({
 }
 
 function PickImageModal({
+  title,
   open,
   onOpenChange,
   onPick,
 }: {
+  title: string;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onPick: (s: Source) => void;
@@ -75,6 +88,7 @@ function PickImageModal({
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const runAi = useServerFn(generateQuestionImage);
@@ -105,7 +119,7 @@ function PickImageModal({
   }
 
   return (
-    <Modal open={open} onOpenChange={(o) => !loading && onOpenChange(o)} title="Добавление изображения" className="max-w-[720px]">
+    <Modal open={open} onOpenChange={(o) => !loading && onOpenChange(o)} title={title} className="max-w-[720px]">
       <div className="mt-6 grid grid-cols-3 gap-1 rounded-xl bg-secondary p-1">
         {TABS.map((t) => (
           <button
@@ -185,16 +199,24 @@ function PickImageModal({
         )}
 
         {tab === "ready" && (
-          <div className="grid h-full grid-cols-3 content-start gap-3 overflow-y-auto">
-            {READY.map((r) => (
+          <div className="flex h-full flex-col gap-3">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Поиск картинок"
+              className="h-12 rounded-xl border border-border px-4 text-sm outline-none focus:border-primary"
+            />
+          <div className="grid flex-1 grid-cols-3 content-start gap-3 overflow-y-auto">
+            {READY.filter((r) => r.name.toLowerCase().includes(query.trim().toLowerCase())).map((r) => (
               <button
                 key={r.src}
-                onClick={() => onPick({ src: r.src, name: r.name, type: "image/jpeg" })}
+                onClick={() => onPick({ src: r.src, name: r.name.split(",")[0], type: "image/jpeg" })}
                 className="aspect-[4/3] overflow-hidden rounded-xl ring-primary transition hover:ring-2"
               >
-                <img src={r.src} alt={r.name} className="h-full w-full object-cover" />
+                <img src={r.src} alt={r.name.split(",")[0]} className="h-full w-full object-cover" />
               </button>
             ))}
+          </div>
           </div>
         )}
       </div>
@@ -205,11 +227,17 @@ function PickImageModal({
 
 function CropModal({
   source,
+  title,
+  description,
+  aspect,
   onBack,
   onClose,
   onDone,
 }: {
   source: Source;
+  title: string;
+  description: string;
+  aspect: number;
   onBack: () => void;
   onClose: () => void;
   onDone: (img: QuestionImage) => void;
@@ -236,8 +264,8 @@ function CropModal({
     <Modal
       open
       onOpenChange={(o) => !o && onClose()}
-      title="Обрезать изображение"
-      description="Выберите область, которая будет показана в вопросе"
+      title={title}
+      description={description}
       className="max-w-[624px]"
     >
       <div className="relative mt-6 h-[363px] overflow-hidden rounded-2xl bg-foreground">
@@ -245,7 +273,7 @@ function CropModal({
           image={source.src}
           crop={crop}
           zoom={zoom}
-          aspect={4 / 3}
+          aspect={aspect}
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onComplete}
