@@ -1,0 +1,125 @@
+import { useCallback, useEffect, useState } from "react";
+import leaf from "@/assets/quiz-leaf.jpg";
+import recycle from "@/assets/quiz-recycle.jpg";
+import globe from "@/assets/quiz-globe.jpg";
+
+export type Quiz = {
+  id: string;
+  title: string;
+  questions: number;
+  image?: string; // undefined → gradient cover
+  grade?: string;
+  mine: boolean;
+  createdAt: number;
+};
+
+export type Folder = {
+  id: string;
+  name: string;
+  quizIds: string[];
+};
+
+export const SEED_QUIZZES: Quiz[] = [
+  { id: "q1", title: "Картины русских живописцев.", questions: 10, mine: true, createdAt: 10 },
+  {
+    id: "q2",
+    title:
+      "Картины русских живописцев. Угадай автора Картины русских живописцев. Угадай автора Картины русских",
+    questions: 10,
+    mine: true,
+    createdAt: 9,
+  },
+  {
+    id: "q3",
+    title: "Хранители Земли: экологические организации мира",
+    questions: 10,
+    image: leaf,
+    grade: "9–11 класс",
+    mine: false,
+    createdAt: 8,
+  },
+  {
+    id: "q4",
+    title: "Утилизирируй это: вся правда о сортировке",
+    questions: 12,
+    image: recycle,
+    grade: "5–8 класс",
+    mine: false,
+    createdAt: 7,
+  },
+  {
+    id: "q5",
+    title: "В мире ESG: что значит «зелёное мышление»",
+    questions: 10,
+    image: globe,
+    grade: "9–11 класс",
+    mine: false,
+    createdAt: 6,
+  },
+  { id: "q6", title: "Картины иностранных живописцев", questions: 10, image: leaf, mine: true, createdAt: 5 },
+  { id: "q7", title: "Айвазовский: картины", questions: 8, mine: true, createdAt: 4 },
+  { id: "q8", title: "Картины русских живописцев", questions: 8, mine: true, createdAt: 3 },
+];
+
+export const SEED_FOLDERS: Folder[] = [
+  { id: "f-drafts", name: "Черновики", quizIds: ["q1", "q2", "q3", "q5"] },
+  { id: "f-9a", name: "История 9А", quizIds: ["q1", "q2", "q3", "q4", "q5"] },
+  { id: "f-8b", name: "8Б для тестов", quizIds: ["q6", "q7"] },
+];
+
+const KEY = "quiz-builder-state-v1";
+
+type State = { quizzes: Quiz[]; folders: Folder[] };
+
+export function useQuizStore() {
+  const [state, setState] = useState<State>({ quizzes: SEED_QUIZZES, folders: SEED_FOLDERS });
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<State>;
+        setState((s) => ({
+          quizzes: s.quizzes,
+          folders: Array.isArray(parsed.folders) ? parsed.folders : s.folders,
+        }));
+      }
+    } catch {
+      /* ignore */
+    }
+    setLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loaded) return;
+    localStorage.setItem(KEY, JSON.stringify({ folders: state.folders }));
+  }, [state.folders, loaded]);
+
+  const createFolder = useCallback((name: string, quizIds: string[]) => {
+    const id = `f-${Date.now()}`;
+    setState((s) => ({ ...s, folders: [...s.folders, { id, name, quizIds }] }));
+    return id;
+  }, []);
+
+  const updateFolder = useCallback((id: string, name: string, quizIds: string[]) => {
+    setState((s) => ({
+      ...s,
+      folders: s.folders.map((f) => (f.id === id ? { ...f, name, quizIds } : f)),
+    }));
+  }, []);
+
+  const deleteFolder = useCallback((id: string) => {
+    setState((s) => ({ ...s, folders: s.folders.filter((f) => f.id !== id) }));
+  }, []);
+
+  return { ...state, createFolder, updateFolder, deleteFolder };
+}
+
+export function pluralQuestions(n: number) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return `${n} вопрос`;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} вопроса`;
+  return `${n} вопросов`;
+}
