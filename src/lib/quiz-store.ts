@@ -121,7 +121,14 @@ export function useQuizStore() {
     setState((s) => ({ ...s, folders: s.folders.filter((f) => f.id !== id) }));
   }, []);
 
-  return { ...state, createFolder, updateFolder, deleteFolder };
+  const deleteQuiz = useCallback((id: string) => {
+    setState((s) => ({
+      quizzes: s.quizzes.filter((q) => q.id !== id),
+      folders: s.folders.map((f) => ({ ...f, quizIds: f.quizIds.filter((qid) => qid !== id) })),
+    }));
+  }, []);
+
+  return { ...state, createFolder, updateFolder, deleteFolder, deleteQuiz };
 }
 
 export function pluralQuestions(n: number) {
