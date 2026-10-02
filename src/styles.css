@@ -63,6 +63,8 @@
   --color-launch-foreground: var(--launch-foreground);
   --color-placeholder-dashed: var(--placeholder-dashed);
   --color-overlay: var(--overlay);
+  --color-info: var(--info);
+  --color-success: var(--success);
   --color-brand-green: var(--brand-green);
   --color-brand-teal: var(--brand-teal);
   --shadow-card: var(--shadow-card);
@@ -98,6 +100,8 @@
   --gradient-quiz: linear-gradient(160deg, #4eeadb 0%, #2bb8f0 55%, #2d9bf5 100%);
   --shadow-card: 0 0 20px rgb(0 0 0 / 0.04), 0 0 8px rgb(0 0 0 / 0.04);
   --brand-green: #2fbf71;
+  --info: #dff1fd;
+  --success: #2fbf71;
   --brand-teal: #0e6e74;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
