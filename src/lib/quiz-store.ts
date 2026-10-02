@@ -7,7 +7,7 @@ export type Quiz = {
   id: string;
   title: string;
   questions: number;
-  image?: string; // undefined → gradient cover
+  image?: string | undefined; // undefined → gradient cover
   grade?: string;
   mine: boolean;
   createdAt: number;
@@ -127,8 +127,8 @@ export function pluralQuestions(n: number) {
 }
 
 export type QuestionImage = { src: string; name: string; type: string; size: number };
-export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage };
-export type Draft = { title: string; questions: DraftQuestion[] };
+export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined };
+export type Draft = { title: string; questions: DraftQuestion[]; cover?: string };
 const DRAFT_KEY = "quiz-builder-draft";
 export function saveDraft(d: Draft) {
   try {
@@ -146,11 +146,16 @@ export function loadDraft(): Draft | null {
   }
 }
 /** Saves a finished quiz into the library (merged on next store load). */
-export function addQuizToLibrary(title: string, questions: number) {
+export function addQuizToLibrary(title: string, questions: number, image?: string) {
   const raw = localStorage.getItem(KEY);
   const stored: Stored = raw ? JSON.parse(raw) : { folders: SEED_FOLDERS };
-  const quiz: Quiz = { id: `ai-${Date.now()}`, title, questions, mine: true, createdAt: Date.now() };
+  const quiz: Quiz = { id: `ai-${Date.now()}`, title, questions, image, mine: true, createdAt: Date.now() };
   stored.custom = [quiz, ...(stored.custom ?? [])];
   stored.folders ??= SEED_FOLDERS;
-  localStorage.setItem(KEY, JSON.stringify(stored));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(stored));
+  } catch {
+    quiz.image = undefined; // storage full — keep the quiz without its cover
+    localStorage.setItem(KEY, JSON.stringify(stored));
+  }
 }

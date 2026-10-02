@@ -15,7 +15,7 @@ export class GatewayError extends Error {
 
 /** Streams a Responses call through Lovable AI Gateway and returns the final text. */
 export async function generateText(system: string, prompt: string): Promise<string> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env['LOVABLE_API_KEY'];
   if (!apiKey) throw new GatewayError(401, "ИИ не настроен");
 
   const provider = createOpenAI({
@@ -43,7 +43,7 @@ export async function generateText(system: string, prompt: string): Promise<stri
     },
   });
 
-  const text = await result.text.catch((e) => {
+  const text = await Promise.resolve(result.text).catch((e: unknown) => {
     failure ??= e;
     return "";
   });
