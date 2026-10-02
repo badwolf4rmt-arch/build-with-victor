@@ -70,6 +70,7 @@ export const SEED_FOLDERS: Folder[] = [
 const KEY = "quiz-builder-state-v1";
 
 type State = { quizzes: Quiz[]; folders: Folder[] };
+type Stored = { folders: Folder[]; custom?: Quiz[] };
 
 export function useQuizStore() {
   const [state, setState] = useState<State>({ quizzes: SEED_QUIZZES, folders: SEED_FOLDERS });
@@ -79,9 +80,9 @@ export function useQuizStore() {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as Partial<State>;
+        const parsed = JSON.parse(raw) as Partial<Stored>;
         setState((s) => ({
-          quizzes: s.quizzes,
+          quizzes: Array.isArray(parsed.custom) ? [...parsed.custom, ...s.quizzes] : s.quizzes,
           folders: Array.isArray(parsed.folders) ? parsed.folders : s.folders,
         }));
       }
@@ -93,8 +94,9 @@ export function useQuizStore() {
 
   useEffect(() => {
     if (!loaded) return;
-    localStorage.setItem(KEY, JSON.stringify({ folders: state.folders }));
-  }, [state.folders, loaded]);
+    const custom = state.quizzes.filter((q) => q.id.startsWith("ai-"));
+    localStorage.setItem(KEY, JSON.stringify({ folders: state.folders, custom }));
+  }, [state.folders, state.quizzes, loaded]);
 
   const createFolder = useCallback((name: string, quizIds: string[]) => {
     const id = `f-${Date.now()}`;
@@ -122,4 +124,28 @@ export function pluralQuestions(n: number) {
   if (m10 === 1 && m100 !== 11) return `${n} вопрос`;
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return `${n} вопроса`;
   return `${n} вопросов`;
+}
+
+export type DraftQuestion = { text: string; correct: string; incorrect: string[] };
+export type Draft = { title: string; questions: DraftQuestion[] };
+const DRAFT_KEY = "quiz-builder-draft";
+export function saveDraft(d: Draft) {
+  sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+}
+export function loadDraft(): Draft | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as Draft) : null;
+  } catch {
+    return null;
+  }
+}
+/** Saves a finished quiz into the library (merged on next store load). */
+export function addQuizToLibrary(title: string, questions: number) {
+  const raw = localStorage.getItem(KEY);
+  const stored: Stored = raw ? JSON.parse(raw) : { folders: SEED_FOLDERS };
+  const quiz: Quiz = { id: `ai-${Date.now()}`, title, questions, mine: true, createdAt: Date.now() };
+  stored.custom = [quiz, ...(stored.custom ?? [])];
+  stored.folders ??= SEED_FOLDERS;
+  localStorage.setItem(KEY, JSON.stringify(stored));
 }
