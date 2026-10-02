@@ -232,7 +232,7 @@ function Editor() {
           >
             <Sparkles className="size-5" /> Сгенерировать
           </button>
-          <CompleteQuizModal open={complete} onOpenChange={setComplete} quiz={quiz} onApply={(q) => { setQuiz(q); setSaved(null); toast.success("Викторина дополнена — проверьте новые вопросы"); }} />
+          <CompleteQuizModal open={complete} onOpenChange={setComplete} quiz={quiz} onApply={(q) => { setQuiz(q); toast.success("Викторина дополнена — проверьте новые вопросы"); }} />
         </section>
       </main>
 
