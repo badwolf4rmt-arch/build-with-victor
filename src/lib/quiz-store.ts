@@ -146,12 +146,13 @@ export function loadDraft(): Draft | null {
     return null;
   }
 }
-/** Saves a finished quiz into the library (merged on next store load). */
-export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: string) {
+/** Saves (or updates, when `id` is given) a quiz in the library; returns the saved quiz. */
+export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: string, id?: string): Quiz {
   const raw = localStorage.getItem(KEY);
   const stored: Stored = raw ? JSON.parse(raw) : { folders: SEED_FOLDERS };
-  const quiz: Quiz = { id: `ai-${Date.now()}`, title, questions: items.length, items, image, mine: true, createdAt: Date.now() };
-  stored.custom = [quiz, ...(stored.custom ?? [])];
+  const prev = stored.custom?.find((q) => q.id === id);
+  const quiz: Quiz = { id: prev?.id ?? `ai-${Date.now()}`, title, questions: items.length, items, image, mine: true, createdAt: prev?.createdAt ?? Date.now() };
+  stored.custom = [quiz, ...(stored.custom ?? []).filter((q) => q.id !== quiz.id)];
   stored.folders ??= SEED_FOLDERS;
   try {
     localStorage.setItem(KEY, JSON.stringify(stored));
@@ -161,6 +162,7 @@ export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: 
     quiz.items = items.map(({ image: _img, ...q }) => q);
     localStorage.setItem(KEY, JSON.stringify(stored));
   }
+  return quiz;
 }
 
 /** Demo questions shown for library quizzes that have no stored content yet. */
