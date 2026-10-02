@@ -21,7 +21,12 @@ const KEY = "quiz-game-setup";
 export const HIDE_RULES_KEY = "quiz-hide-rules";
 
 export function saveSetup(s: GameSetup) {
-  sessionStorage.setItem(KEY, JSON.stringify(s));
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify(s));
+  } catch {
+    // too large with pictures — keep the questions without images
+    sessionStorage.setItem(KEY, JSON.stringify({ ...s, items: s.items.map(({ image: _i, ...q }) => q) }));
+  }
 }
 export function loadSetup(): GameSetup | null {
   try {

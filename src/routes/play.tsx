@@ -20,7 +20,7 @@ export const Route = createFileRoute("/play")({
   component: PlayPage,
 });
 
-type Cell = { n: number; bonus?: BonusId; done: boolean };
+type Cell = { n: number; q?: number; bonus?: BonusId; done: boolean };
 
 function PlayPage() {
   const navigate = useNavigate();
@@ -30,16 +30,18 @@ function PlayPage() {
   const [cells, setCells] = useState<Cell[]>([]);
   const [open, setOpen] = useState<Cell | null>(null);
   const [finished, setFinished] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
 
   useEffect(() => {
     const s = loadSetup();
     setSetup(s);
     if (!s) return;
     setTeams(s.teams);
-    const total = Math.max(1, s.questions);
+    const items = s.items ?? [];
+    const total = items.length;
     const bonusCount = s.bonuses.length ? Math.min(s.bonuses.length, Math.floor(total / 3) || 1) : 0;
     const extra = Array.from({ length: bonusCount }, (_, i) => s.bonuses[Math.floor(Math.random() * s.bonuses.length)]!).slice(0, bonusCount);
-    const list: Cell[] = Array.from({ length: total }, (_, i) => ({ n: i + 1, done: false }));
+    const list: Cell[] = Array.from({ length: total }, (_, i) => ({ n: i + 1, q: i, done: false }));
     extra.forEach((b) => list.push({ n: 0, bonus: b, done: false }));
     list.sort(() => Math.random() - 0.5);
     setCells(list.map((c, i) => ({ ...c, n: i + 1 })));
@@ -48,10 +50,10 @@ function PlayPage() {
   const cols = useMemo(() => (cells.length <= 10 ? 5 : cells.length <= 18 ? 6 : 8), [cells.length]);
 
   if (setup === undefined) return null;
-  if (!setup)
+  if (!setup || !(setup.items ?? []).length)
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-        <p>Игра не настроена</p>
+        <p>{setup ? "В викторине нет вопросов" : "Игра не настроена"}</p>
         <Link to="/" className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">К викторинам</Link>
       </div>
     );
@@ -65,10 +67,13 @@ function PlayPage() {
     const nextCells = cells.map((c) => (c.n === open.n ? { ...c, done: true } : c));
     setCells(nextCells);
     setOpen(null);
+    setPicked(null);
     setTurn((t) => (t + 1) % teams.length);
     if (nextCells.every((c) => c.done)) setFinished(true);
   };
 
+  const question = open && open.q !== undefined ? setup.items[open.q] : undefined;
+  const options = question ? shuffled(open!.n, [question.correct, ...question.incorrect]) : [];
   const bonus = open?.bonus ? BONUSES.find((b) => b.id === open.bonus) : undefined;
   const ranking = [...teams].sort((a, b) => b.score - a.score);
 
@@ -109,18 +114,47 @@ function PlayPage() {
         ))}
       </main>
 
-      <Modal open={!!open} onOpenChange={(o) => !o && setOpen(null)} title={bonus ? `Бонус: ${bonus.name}` : `Вопрос ${open?.n ?? ""}`} description={bonus ? bonus.text : `Отвечает «${teams[turn]?.name}». Ответила ли команда верно?`}>
+      <Modal
+        open={!!open}
+        onOpenChange={(o) => !o && !picked && setOpen(null)}
+        title={bonus ? `Бонус: ${bonus.name}` : question?.text ?? ""}
+        description={bonus ? bonus.text : `Вопрос ${open?.n ?? ""} · отвечает «${teams[turn]?.name}»`}
+      >
         {bonus ? (
           <div className="mt-6 flex flex-col items-center gap-6">
             <span className="text-7xl">{bonus.icon}</span>
             <button onClick={() => resolve(null)} className="h-12 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Применить</button>
           </div>
-        ) : (
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button onClick={() => resolve(false)} className="h-12 rounded-xl bg-secondary text-sm font-semibold hover:bg-muted">Неверно</button>
-            <button onClick={() => resolve(true)} className="h-12 rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Верно, +5</button>
+        ) : question ? (
+          <div className="mt-6 flex flex-col gap-3">
+            {question.image && <img src={question.image} alt="" className="max-h-56 w-full rounded-2xl object-cover" />}
+            {options.map((opt) => {
+              const isCorrect = opt === question.correct;
+              const state = !picked ? "idle" : isCorrect ? "correct" : opt === picked ? "wrong" : "idle";
+              return (
+                <button
+                  key={opt}
+                  disabled={!!picked}
+                  onClick={() => setPicked(opt)}
+                  className={cn(
+                    "min-h-12 rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition-colors",
+                    state === "correct" && "border-success bg-success-soft",
+                    state === "wrong" && "border-destructive bg-destructive/10",
+                    state === "idle" && "border-border bg-card enabled:hover:bg-secondary",
+                  )}
+                >
+                  {opt}
+                </button>
+              );
+            })}
+            {picked && (
+              <>
+                <p className="text-sm font-semibold">{picked === question.correct ? "Верно! +5 баллов" : `Неверно. Правильный ответ: ${question.correct}`}</p>
+                <button onClick={() => resolve(picked === question.correct)} className="h-12 rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Дальше</button>
+              </>
+            )}
           </div>
-        )}
+        ) : null}
       </Modal>
 
       <Modal open={finished} onOpenChange={setFinished} title="Итоги викторины">
@@ -138,4 +172,15 @@ function PlayPage() {
       </Modal>
     </div>
   );
+}
+
+function shuffled(seed: number, list: string[]) {
+  const arr = [...list];
+  let x = seed * 9301 + 49297;
+  for (let i = arr.length - 1; i > 0; i--) {
+    x = (x * 9301 + 49297) % 233280;
+    const j = Math.floor((x / 233280) * (i + 1));
+    [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+  }
+  return arr;
 }

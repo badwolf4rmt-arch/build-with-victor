@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import type { Quiz } from "@/lib/quiz-store";
+import { getQuizItems, type Quiz } from "@/lib/quiz-store";
 import { AVATARS, BONUSES, HIDE_RULES_KEY, saveSetup, type BonusId } from "@/lib/game";
 import classroom from "@/assets/rules-classroom.jpg";
 
@@ -77,7 +77,8 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
     saveSetup({
       quizId: quiz.id,
       title: quiz.title,
-      questions: quiz.questions,
+      questions: getQuizItems(quiz).length,
+      items: getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src })),
       teams: Array.from({ length: count }, (_, i) => ({ name: names[i]!.trim() || `Команда ${i + 1}`, avatar: avatars[i]!, score: 0 })),
       bonuses: singleTeam ? [] : bonuses,
     });
