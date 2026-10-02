@@ -176,7 +176,7 @@ function buildTestHtml(title: string, items: DraftQuestion[], variants: number, 
       .map((q, i) => {
         const opts = shuffle([q.correct, ...q.incorrect.filter((x) => x.trim())]);
         key.push(`${i + 1} — ${LETTERS[opts.indexOf(q.correct)]}`);
-        return `<li><p class="q">${esc(q.text)}</p>${q.image ? `<img src="${q.image.src}">` : ""}<ol type="А">${opts.map((o) => `<li>${esc(o)}</li>`).join("")}</ol></li>`;
+        return `<li><p class="q">${esc(q.text)}</p>${q.image ? `<img src="${q.image.src}">` : ""}<ul class="o">${opts.map((o, k) => `<li>${LETTERS[k]}) ${esc(o)}</li>`).join("")}</ul></li>`;
       })
       .join("");
     keys.push(key);
@@ -187,7 +187,6 @@ function buildTestHtml(title: string, items: DraftQuestion[], variants: number, 
     : "";
   return `<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>${esc(title)} — тест</title><style>
 body{font-family:Arial,sans-serif;color:#111;margin:0}section{padding:32px 40px;page-break-after:always}h1{font-size:22px;margin:0 0 6px}h2{font-size:16px;margin:18px 0 4px}
-.meta{color:#555;font-size:13px;margin-bottom:20px}.qs>li{margin-bottom:16px;break-inside:avoid}.q{font-weight:bold;margin:0 0 6px}ol[type="А"]{margin:0;padding-left:22px}
-ol[type="А"] li{list-style-type:none;counter-increment:o}ol[type="А"]{counter-reset:o}ol[type="А"] li::before{content:counter(o,cyrillic-lower) ") "}img{max-width:260px;max-height:160px;display:block;margin:4px 0 8px;border-radius:8px}
+.meta{color:#555;font-size:13px;margin-bottom:20px}.qs>li{margin-bottom:16px;break-inside:avoid}.q{font-weight:bold;margin:0 0 6px}.o{margin:0;padding-left:8px;list-style:none}.o li{margin:2px 0}img{max-width:260px;max-height:160px;display:block;margin:4px 0 8px;border-radius:8px}
 </style></head><body>${pages}${answers}<script>setTimeout(()=>print(),300)</script></body></html>`;
 }
