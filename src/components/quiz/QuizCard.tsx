@@ -1,4 +1,6 @@
 import { Eye, Play, Plus, Settings } from "lucide-react";
+import { useState } from "react";
+import { LaunchFlow } from "./LaunchFlow";
 import { toast } from "sonner";
 import { pluralQuestions, type Quiz } from "@/lib/quiz-store";
 import { QuizCover } from "./QuizCover";
@@ -18,8 +20,10 @@ export function CreateQuizCard() {
 }
 
 export function QuizCard({ quiz }: { quiz: Quiz }) {
+  const [launch, setLaunch] = useState(false);
   return (
     <article className="flex min-h-[220px] flex-col justify-between gap-6 rounded-2xl bg-card p-5 shadow-card">
+      <LaunchFlow quiz={quiz} open={launch} onOpenChange={setLaunch} />
       <div className="flex gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <h3 className="font-display text-xl font-semibold leading-6">{quiz.title}</h3>
@@ -37,7 +41,7 @@ export function QuizCard({ quiz }: { quiz: Quiz }) {
       <div className="flex items-center justify-between">
         <div className="flex gap-3">
           <button
-            onClick={() => toast(`Запуск: ${quiz.title}`)}
+            onClick={() => setLaunch(true)}
             className="flex h-8 items-center gap-1.5 rounded-lg bg-launch px-3 text-xs font-semibold text-launch-foreground transition-opacity hover:opacity-90"
           >
             <Play className="size-4 fill-current" />
