@@ -126,11 +126,16 @@ export function pluralQuestions(n: number) {
   return `${n} вопросов`;
 }
 
-export type DraftQuestion = { text: string; correct: string; incorrect: string[] };
+export type QuestionImage = { src: string; name: string; type: string; size: number };
+export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage };
 export type Draft = { title: string; questions: DraftQuestion[] };
 const DRAFT_KEY = "quiz-builder-draft";
 export function saveDraft(d: Draft) {
-  sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  } catch {
+    /* storage full — draft stays in memory only */
+  }
 }
 export function loadDraft(): Draft | null {
   try {

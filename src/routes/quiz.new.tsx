@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, ImagePlus, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { addQuizToLibrary, loadDraft, type Draft } from "@/lib/quiz-store";
+import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
+import { addQuizToLibrary, loadDraft, saveDraft, type Draft } from "@/lib/quiz-store";
 
 export const Route = createFileRoute("/quiz/new")({
   head: () => ({
@@ -23,11 +24,17 @@ const EMPTY: Draft = { title: "Новая викторина", questions: [{ tex
 function Editor() {
   const navigate = useNavigate();
   const [quiz, setQuiz] = useState<Draft>(EMPTY);
+  const [imageFor, setImageFor] = useState<number | null>(null);
+  const [replaceFor, setReplaceFor] = useState<number | null>(null);
 
   useEffect(() => {
     const d = loadDraft();
     if (d) setQuiz(d);
   }, []);
+
+  useEffect(() => {
+    if (quiz !== EMPTY) saveDraft(quiz);
+  }, [quiz]);
 
   const updateQ = (i: number, patch: Partial<Draft["questions"][number]>) =>
     setQuiz((q) => ({ ...q, questions: q.questions.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
@@ -81,14 +88,47 @@ function Editor() {
                   <Trash2 className="size-5" />
                 </button>
               </div>
-              <textarea
-                value={q.text}
-                maxLength={100}
-                onChange={(e) => updateQ(i, { text: e.target.value })}
-                placeholder="Текст вопроса"
-                className="mt-4 h-[106px] w-full max-w-[848px] resize-none rounded-2xl border border-border bg-card p-4 text-sm outline-none focus:border-primary"
-              />
-              <p className="max-w-[848px] text-right text-xs text-muted-foreground">{q.text.length}/100</p>
+              <div className="mt-4 flex max-w-[884px] items-start gap-4">
+                <div className="min-w-0 flex-1">
+                  <textarea
+                    value={q.text}
+                    maxLength={100}
+                    onChange={(e) => updateQ(i, { text: e.target.value })}
+                    placeholder="Текст вопроса"
+                    className="h-[106px] w-full resize-none rounded-2xl border border-border bg-card p-4 text-sm outline-none focus:border-primary"
+                  />
+                  <div className="flex items-start justify-between gap-4">
+                    {q.image ? (
+                      <div className="flex items-center gap-1.5">
+                        <img src={q.image.src} alt="" className="size-8 rounded-md object-cover" />
+                        <div className="leading-4">
+                          <p className="max-w-[160px] truncate text-xs font-semibold">{q.image.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {q.image.type} · {formatSize(q.image.size)}
+                          </p>
+                        </div>
+                        <button
+                          aria-label="Удалить изображение"
+                          onClick={() => updateQ(i, { image: undefined })}
+                          className="ml-6 text-muted-foreground hover:text-foreground"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <span />
+                    )}
+                    <p className="text-xs text-muted-foreground">{q.text.length}/100</p>
+                  </div>
+                </div>
+                <button
+                  aria-label={q.image ? "Заменить изображение" : "Добавить изображение"}
+                  onClick={() => (q.image ? setReplaceFor(i) : setImageFor(i))}
+                  className="mt-2 text-muted-foreground hover:text-foreground"
+                >
+                  <ImagePlus className="size-5" />
+                </button>
+              </div>
 
               <h3 className="mt-4 font-display text-xl font-semibold">Варианты ответов</h3>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -151,6 +191,21 @@ function Editor() {
           </button>
         </section>
       </main>
+
+      <AddImageFlow
+        open={imageFor !== null}
+        onOpenChange={(o) => !o && setImageFor(null)}
+        onDone={(image) => imageFor !== null && updateQ(imageFor, { image })}
+      />
+      <ReplaceImageModal
+        open={replaceFor !== null}
+        image={replaceFor !== null ? quiz.questions[replaceFor]?.image : undefined}
+        onOpenChange={(o) => !o && setReplaceFor(null)}
+        onReplace={() => {
+          setImageFor(replaceFor);
+          setReplaceFor(null);
+        }}
+      />
     </div>
   );
 }
