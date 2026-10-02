@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
@@ -8,6 +8,7 @@ import { PrintTestDrawer } from "@/components/quiz/PrintTestDrawer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { CompleteQuizModal } from "@/components/quiz/CompleteQuizModal";
 import { PreviewOverlay } from "@/components/quiz/PreviewOverlay";
 import { addQuizToLibrary, loadDraft, saveDraft, type Draft, type Quiz } from "@/lib/quiz-store";
 
@@ -36,6 +37,7 @@ function Editor() {
   const [saved, setSaved] = useState<Quiz | null>(null);
   const [launch, setLaunch] = useState(false);
   const [print, setPrint] = useState(false);
+  const [complete, setComplete] = useState(false);
 
   useEffect(() => {
     const d = loadDraft();
@@ -220,10 +222,17 @@ function Editor() {
             onClick={() =>
               setQuiz({ ...quiz, questions: [...quiz.questions, { text: "", correct: "", incorrect: ["", "", ""] }] })
             }
-            className="flex h-12 w-[224px] items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-semibold"
+            className="inline-flex h-12 w-[224px] items-center justify-center gap-2 rounded-xl bg-secondary text-sm font-semibold"
           >
             <Plus className="size-5" /> Добавить вопрос
           </button>
+          <button
+            onClick={() => setComplete(true)}
+            className="ml-3 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+          >
+            <Sparkles className="size-5" /> Сгенерировать
+          </button>
+          <CompleteQuizModal open={complete} onOpenChange={setComplete} quiz={quiz} onApply={(q) => { setQuiz(q); toast.success("Викторина дополнена — проверьте новые вопросы"); }} />
         </section>
       </main>
 
