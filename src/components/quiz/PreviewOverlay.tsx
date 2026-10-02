@@ -46,7 +46,7 @@ export function PreviewOverlay({
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-t-[32px] bg-background">
         <div className="relative flex min-w-0 flex-1 items-center justify-center overflow-y-auto p-8">
           {q ? (
-            <div className="relative w-full max-w-[1100px] rounded-[40px] bg-card p-10 shadow-card">
+            <div className="relative w-full max-w-[1100px] rounded-[40px] bg-card p-10 pt-14 shadow-card">
               <span className="absolute -top-5 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-xl border-4 border-warning bg-warning px-3 py-1 font-display text-3xl font-bold text-warning-foreground">
                 <Star className="size-7 fill-current" />15
               </span>
