@@ -41,7 +41,10 @@ function Editor() {
     setQuiz((q) => ({ ...q, questions: q.questions.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
 
   function save() {
-    if (!quiz.title.trim()) return toast.error("Введите название викторины");
+    if (!quiz.title.trim()) {
+      toast.error("Введите название викторины");
+      return;
+    }
     addQuizToLibrary(quiz.title.trim(), quiz.questions.length, quiz.cover);
     toast.success("Викторина сохранена");
     navigate({ to: "/" });

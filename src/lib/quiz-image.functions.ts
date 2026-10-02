@@ -6,7 +6,7 @@ export type ImageResult = { ok: true; dataUrl: string } | { ok: false; error: st
 export const generateQuestionImage = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ prompt: z.string().trim().min(3).max(500) }).parse(data))
   .handler(async ({ data }): Promise<ImageResult> => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env['LOVABLE_API_KEY'];
     if (!apiKey) return { ok: false, error: "ИИ не настроен" };
     const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
       method: "POST",

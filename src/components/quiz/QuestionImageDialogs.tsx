@@ -210,10 +210,10 @@ function PickImageModal({
             {READY.filter((r) => r.name.toLowerCase().includes(query.trim().toLowerCase())).map((r) => (
               <button
                 key={r.src}
-                onClick={() => onPick({ src: r.src, name: r.name.split(",")[0], type: "image/jpeg" })}
+                onClick={() => onPick({ src: r.src, name: r.name.split(",")[0] ?? r.name, type: "image/jpeg" })}
                 className="aspect-[4/3] overflow-hidden rounded-xl ring-primary transition hover:ring-2"
               >
-                <img src={r.src} alt={r.name.split(",")[0]} className="h-full w-full object-cover" />
+                <img src={r.src} alt={r.name.split(",")[0] ?? r.name} className="h-full w-full object-cover" />
               </button>
             ))}
           </div>
@@ -311,7 +311,7 @@ export function ReplaceImageModal({
   onOpenChange,
   onReplace,
 }: {
-  image?: QuestionImage;
+  image?: QuestionImage | undefined;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   onReplace: () => void;

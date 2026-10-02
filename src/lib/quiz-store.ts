@@ -7,7 +7,7 @@ export type Quiz = {
   id: string;
   title: string;
   questions: number;
-  image?: string; // undefined → gradient cover
+  image?: string | undefined; // undefined → gradient cover
   grade?: string;
   mine: boolean;
   createdAt: number;
@@ -127,7 +127,7 @@ export function pluralQuestions(n: number) {
 }
 
 export type QuestionImage = { src: string; name: string; type: string; size: number };
-export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage };
+export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined };
 export type Draft = { title: string; questions: DraftQuestion[]; cover?: string };
 const DRAFT_KEY = "quiz-builder-draft";
 export function saveDraft(d: Draft) {
