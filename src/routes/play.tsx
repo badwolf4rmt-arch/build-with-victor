@@ -93,7 +93,7 @@ function PlayPage() {
         </button>
       </header>
 
-      <main className="grid flex-1 gap-4 p-6" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+      <main className="grid flex-1 auto-rows-[minmax(140px,240px)] content-start gap-4 p-6" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {cells.map((c) => (
           <button
             key={c.n}
