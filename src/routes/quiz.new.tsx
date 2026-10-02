@@ -72,7 +72,7 @@ function Editor() {
               <Pencil className="size-5" /> Изменить обложку
             </button>
           </div>
-          <div className="-mt-12 rounded-t-[32px] bg-card p-8">
+          <div className="relative -mt-12 rounded-t-[32px] bg-card p-8">
             <input
               value={quiz.title}
               onChange={(e) => setQuiz({ ...quiz, title: e.target.value })}
