@@ -14,13 +14,19 @@ export const BONUSES: { id: BonusId; name: string; text: string; icon: string }[
 ];
 
 export type Team = { name: string; avatar: string; score: number };
-export type GameSetup = { quizId: string; title: string; questions: number; teams: Team[]; bonuses: BonusId[] };
+export type GameQuestion = { text: string; correct: string; incorrect: string[]; image?: string | undefined };
+export type GameSetup = { quizId: string; title: string; questions: number; items: GameQuestion[]; teams: Team[]; bonuses: BonusId[] };
 
 const KEY = "quiz-game-setup";
 export const HIDE_RULES_KEY = "quiz-hide-rules";
 
 export function saveSetup(s: GameSetup) {
-  sessionStorage.setItem(KEY, JSON.stringify(s));
+  try {
+    sessionStorage.setItem(KEY, JSON.stringify(s));
+  } catch {
+    // too large with pictures — keep the questions without images
+    sessionStorage.setItem(KEY, JSON.stringify({ ...s, items: s.items.map(({ image: _i, ...q }) => q) }));
+  }
 }
 export function loadSetup(): GameSetup | null {
   try {

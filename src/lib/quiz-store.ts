@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import leaf from "@/assets/quiz-leaf.jpg";
 import recycle from "@/assets/quiz-recycle.jpg";
 import globe from "@/assets/quiz-globe.jpg";
+import { AIVAZOVSKY, ECO_ORGS, ESG, FOREIGN_PAINTERS, RECYCLING, RUSSIAN_PAINTERS } from "./seed-questions";
 
 export type Quiz = {
   id: string;
@@ -21,12 +22,13 @@ export type Folder = {
 };
 
 export const SEED_QUIZZES: Quiz[] = [
-  { id: "q1", title: "Картины русских живописцев.", questions: 10, mine: true, createdAt: 10 },
+  { id: "q1", title: "Картины русских живописцев.", questions: 10, items: RUSSIAN_PAINTERS, mine: true, createdAt: 10 },
   {
     id: "q2",
     title:
       "Картины русских живописцев. Угадай автора Картины русских живописцев. Угадай автора Картины русских",
     questions: 10,
+    items: RUSSIAN_PAINTERS,
     mine: true,
     createdAt: 9,
   },
@@ -35,6 +37,7 @@ export const SEED_QUIZZES: Quiz[] = [
     title: "Хранители Земли: экологические организации мира",
     questions: 10,
     image: leaf,
+    items: ECO_ORGS,
     grade: "9–11 класс",
     mine: false,
     createdAt: 8,
@@ -44,6 +47,7 @@ export const SEED_QUIZZES: Quiz[] = [
     title: "Утилизирируй это: вся правда о сортировке",
     questions: 12,
     image: recycle,
+    items: RECYCLING,
     grade: "5–8 класс",
     mine: false,
     createdAt: 7,
@@ -53,13 +57,14 @@ export const SEED_QUIZZES: Quiz[] = [
     title: "В мире ESG: что значит «зелёное мышление»",
     questions: 10,
     image: globe,
+    items: ESG,
     grade: "9–11 класс",
     mine: false,
     createdAt: 6,
   },
-  { id: "q6", title: "Картины иностранных живописцев", questions: 10, image: leaf, mine: true, createdAt: 5 },
-  { id: "q7", title: "Айвазовский: картины", questions: 8, mine: true, createdAt: 4 },
-  { id: "q8", title: "Картины русских живописцев", questions: 8, mine: true, createdAt: 3 },
+  { id: "q6", title: "Картины иностранных живописцев", questions: 10, items: FOREIGN_PAINTERS, image: leaf, mine: true, createdAt: 5 },
+  { id: "q7", title: "Айвазовский: картины", questions: 8, items: AIVAZOVSKY, mine: true, createdAt: 4 },
+  { id: "q8", title: "Картины русских живописцев", questions: 10, items: RUSSIAN_PAINTERS, mine: true, createdAt: 3 },
 ];
 
 export const SEED_FOLDERS: Folder[] = [
@@ -172,13 +177,6 @@ export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: 
   return quiz;
 }
 
-/** Demo questions shown for library quizzes that have no stored content yet. */
-const DEMO_ITEMS: DraftQuestion[] = [
-  { text: "В каком году состоялся самый первый полёт человека в космос и кто стал первым, побывавшим в космосе?", correct: "1961 — Юрий Гагарин стал первым космонавтом в Советском Союзе", incorrect: ["1956 — Валентина Терешкова стала первым космонавтом в СССР", "1965 — Герман Титов стал первым космонавтом в Советском Союзе", "1960 — Владимир Комаров стал первым космонавтом в СССР"] },
-  { text: "Сколько длился первый космический полёт?", correct: "108 минут", incorrect: ["30 минут", "5 часов", "Одни сутки"] },
-  { text: "Кто первым вышел в открытый космос?", correct: "Алексей Леонов", incorrect: ["Юрий Гагарин", "Нил Армстронг", "Герман Титов"] },
-  { text: "Кто был главным конструктором первых космических кораблей?", correct: "Сергей Королёв", incorrect: ["Константин Циолковский", "Андрей Туполев", "Михаил Калашников"] },
-];
 export function getQuizItems(quiz: Quiz): DraftQuestion[] {
-  return quiz.items?.length ? quiz.items : DEMO_ITEMS;
+  return quiz.items ?? [];
 }
