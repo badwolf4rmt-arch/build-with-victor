@@ -75,7 +75,7 @@ function Editor() {
       const j = i + d;
       if (j < 0 || j >= q.questions.length) return q;
       const arr = [...q.questions];
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      [arr[i], arr[j]] = [arr[j]!, arr[i]!];
       return { ...q, questions: arr };
     });
 
@@ -84,7 +84,7 @@ function Editor() {
       const arr = [...q.questions];
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+        [arr[i], arr[j]] = [arr[j]!, arr[i]!];
       }
       return { ...q, questions: arr };
     });
