@@ -56,7 +56,7 @@ export function PrintTestDrawer({
             </div>
             <button aria-label="Закрыть" onClick={() => toast.dismiss(id)}><X className="size-5 text-muted-foreground" /></button>
           </div>
-        ), { duration: 5000, position: "top-right" });
+        ), { duration: 5000, position: "top-right", unstyled: true });
       } catch {
         win?.close();
         setPhase("error");
