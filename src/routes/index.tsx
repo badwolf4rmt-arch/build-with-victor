@@ -73,13 +73,30 @@ function Index() {
     return sorted;
   }, [quizzes, folder, activeTab, search, sort]);
 
-  const showCreateCard = activeTab !== "ready" && !search;
-
   return (
     <div className="min-h-screen bg-background pb-16">
-      <Header search={search} onSearch={setSearch} />
+      <Header />
 
-      <main className="mx-auto max-w-[1126px] px-4 pt-[46px] xl:px-0">
+      <main className="mx-auto max-w-[1126px] px-4 pt-10 xl:px-0">
+        <div className="mb-8 flex flex-wrap gap-5">
+          <button
+            onClick={() => {
+              clearDraft();
+              void navigate({ to: "/quiz/new" });
+            }}
+            className="flex h-14 items-center gap-3 rounded-2xl bg-primary px-4 pr-5 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            <SquarePlus className="size-6" />
+            Создать викторину
+          </button>
+          <button
+            onClick={() => setAiOpen(true)}
+            className="flex h-14 items-center gap-3 rounded-2xl bg-quiz-gradient px-5 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            <Sparkles className="size-6" />
+            Сгенерировать викторину с ИИ
+          </button>
+        </div>
         <div className="flex items-end gap-6 border-b border-border">
           <nav className="-mb-px flex flex-1 gap-8 overflow-x-auto" aria-label="Разделы">
             {[...BASE_TABS, ...folders.map((f) => ({ id: f.id, label: f.name }))].map((t) => {

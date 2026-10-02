@@ -131,6 +131,13 @@ export type QuestionImage = { src: string; name: string; type: string; size: num
 export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined };
 export type Draft = { title: string; questions: DraftQuestion[]; cover?: string };
 const DRAFT_KEY = "quiz-builder-draft";
+export function clearDraft() {
+  try {
+    sessionStorage.removeItem(DRAFT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 export function saveDraft(d: Draft) {
   try {
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
