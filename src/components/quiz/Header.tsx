@@ -1,25 +1,15 @@
-import { ArrowUpRight, CircleHelp, Search } from "lucide-react";
+import { ArrowUpRight, CircleHelp } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "./Logo";
 
-export function Header({ search, onSearch }: { search: string; onSearch: (v: string) => void }) {
+export function Header() {
   return (
     <header className="rounded-b-3xl bg-card">
       <div className="mx-auto flex h-[88px] max-w-[1366px] items-center gap-6 px-6">
         <div className="w-[228px] shrink-0">
           <Logo />
         </div>
-        <div className="flex flex-1 justify-center">
-          <label className="flex h-12 w-full max-w-[466px] items-center gap-2.5 rounded-xl bg-secondary px-[18px]">
-            <Search className="size-5 shrink-0 text-foreground" />
-            <input
-              value={search}
-              onChange={(e) => onSearch(e.target.value)}
-              placeholder="Поиск по названию"
-              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-            />
-          </label>
-        </div>
+        <div className="flex-1" />
         <div className="flex shrink-0 items-center gap-2">
           <button
             onClick={() => toast("Ассистент преподавателя скоро будет доступен")}

@@ -1,14 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDownWideNarrow, Check, Pencil, Sparkles, Trash2 } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowDownWideNarrow, Check, Pencil, Sparkles, SquarePlus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/quiz/Header";
-import { CreateQuizCard, QuizCard } from "@/components/quiz/QuizCard";
+import { QuizCard } from "@/components/quiz/QuizCard";
 import { AiGenerateDrawer } from "@/components/quiz/AiGenerateDrawer";
 import { FolderDialog } from "@/components/quiz/FolderDialog";
 import { Modal, ModalActions } from "@/components/quiz/Modal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useQuizStore } from "@/lib/quiz-store";
+import { clearDraft, useQuizStore } from "@/lib/quiz-store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -47,7 +47,8 @@ const BASE_TABS = [
 function Index() {
   const { quizzes, folders, createFolder, updateFolder, deleteFolder } = useQuizStore();
   const [tab, setTab] = useState<string>("all");
-  const [search, setSearch] = useState("");
+  const search = "";
+  const navigate = useNavigate();
   const [sort, setSort] = useState<SortKey>("new");
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -155,17 +156,9 @@ function Index() {
               </button>
             </div>
           )}
-          <button
-            onClick={() => setAiOpen(true)}
-            className="ml-auto flex h-14 items-center gap-3 rounded-2xl bg-primary px-5 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            <Sparkles className="size-6" />
-            Сгенерировать викторину
-          </button>
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
-          {showCreateCard && <CreateQuizCard />}
           {visible.map((q) => (
             <QuizCard key={q.id} quiz={q} />
           ))}
