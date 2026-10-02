@@ -134,7 +134,7 @@ export function pluralQuestions(n: number) {
 
 export type QuestionImage = { src: string; name: string; type: string; size: number };
 export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined };
-export type Draft = { title: string; questions: DraftQuestion[]; cover?: string };
+export type Draft = { title: string; questions: DraftQuestion[]; cover?: string; id?: string };
 const DRAFT_KEY = "quiz-builder-draft";
 export function clearDraft() {
   try {

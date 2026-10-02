@@ -43,7 +43,10 @@ function Editor() {
 
   useEffect(() => {
     const d = loadDraft();
-    if (d) setQuiz(d);
+    if (d) {
+      setQuiz(d);
+      if (d.id) setSaved({ id: d.id, title: d.title, questions: d.questions.length, items: d.questions, image: d.cover, mine: true, createdAt: 0 });
+    }
   }, []);
 
   useEffect(() => {
@@ -99,7 +102,9 @@ function Editor() {
       toast.error("Введите название викторины");
       return;
     }
-    setSaved(addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id));
+    const s = addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id);
+    setSaved(s);
+    if (quiz.id !== s.id) setQuiz((q) => ({ ...q, id: s.id }));
     toast.success("Викторина сохранена");
   }
 
