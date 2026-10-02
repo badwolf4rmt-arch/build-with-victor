@@ -1,9 +1,10 @@
-import { Eye, Play, Plus, Settings } from "lucide-react";
+import { Eye, Pencil, Play, Plus } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { LaunchFlow } from "./LaunchFlow";
 import { toast } from "sonner";
 import { PreviewOverlay } from "./PreviewOverlay";
-import { getQuizItems, pluralQuestions, type Quiz } from "@/lib/quiz-store";
+import { saveDraft, getQuizItems, pluralQuestions, type Quiz } from "@/lib/quiz-store";
 import { QuizCover } from "./QuizCover";
 
 export function CreateQuizCard() {
@@ -23,6 +24,17 @@ export function CreateQuizCard() {
 export function QuizCard({ quiz }: { quiz: Quiz }) {
   const [launch, setLaunch] = useState(false);
   const [preview, setPreview] = useState(false);
+  const navigate = useNavigate();
+  function edit() {
+    const items = getQuizItems(quiz);
+    saveDraft({
+      title: quiz.title,
+      questions: items.length ? items : [{ text: "", correct: "", incorrect: ["", "", ""] }],
+      cover: quiz.image,
+      id: quiz.id.startsWith("ai-") ? quiz.id : undefined,
+    });
+    navigate({ to: "/quiz/new" });
+  }
   return (
     <article className="flex min-h-[220px] flex-col justify-between gap-6 rounded-2xl bg-card p-5 shadow-card">
       <LaunchFlow quiz={quiz} open={launch} onOpenChange={setLaunch} />
@@ -39,14 +51,14 @@ export function QuizCard({ quiz }: { quiz: Quiz }) {
           <h3 className="font-display text-xl font-semibold leading-6">{quiz.title}</h3>
           <p className="text-sm text-muted-foreground">{pluralQuestions(quiz.questions)}</p>
         </div>
-        <div className="relative h-[124px] w-[152px] shrink-0 overflow-hidden rounded-xl">
+        <button type="button" onClick={edit} aria-label="Изменить обложку" className="relative h-[124px] w-[152px] shrink-0 overflow-hidden rounded-xl">
           <QuizCover quiz={quiz} className="h-full w-full" />
           {quiz.grade && (
             <span className="absolute bottom-2 left-2 rounded-md bg-card px-2 py-1 text-xs font-medium">
               {quiz.grade}
             </span>
           )}
-        </div>
+        </button>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex gap-3">
@@ -65,15 +77,14 @@ export function QuizCard({ quiz }: { quiz: Quiz }) {
             Предпросмотр
           </button>
         </div>
-        {quiz.mine && (
-          <button
-            aria-label="Настройки викторины"
-            onClick={() => toast("Настройки викторины")}
-            className="flex size-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-secondary"
-          >
-            <Settings className="size-4" />
-          </button>
-        )}
+        <button
+          aria-label="Редактировать викторину"
+          title="Редактировать: вопросы и обложка"
+          onClick={edit}
+          className="flex size-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-secondary"
+        >
+          <Pencil className="size-4" />
+        </button>
       </div>
     </article>
   );
