@@ -1,10 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+// Правило стиля выведено из имеющихся обложек (переработка пластика, лист-сердце, стеклянный глобус).
+const COVER_STYLE = `Создай обложку для школьной викторины. Строго соблюдай стиль:
+- Фотореализм, как качественное стоковое фото; не иллюстрация, не 3D-мультяшность, не коллаж.
+- Один понятный центральный предмет-символ темы, крупным планом, занимает 40–60% кадра, расположен по центру или чуть левее.
+- Малая глубина резкости: предмет резкий, фон мягко размыт (боке), без отвлекающих деталей.
+- Мягкий естественный дневной свет, светлая, чистая, «воздушная» атмосфера, лёгкие блики.
+- Ограниченная гармоничная палитра из 1–2 доминирующих цветов, связанных с темой (например, зелень для природы, голубой и белый для воды/пластика).
+- Горизонтальный кадр примерно 6:5, важные детали не у краёв (обложку обрезают).
+- Позитивный, дружелюбный тон, подходящий для детей.
+- Никакого текста, букв, цифр, логотипов, водяных знаков; людей — только руки, если нужно.`;
+
 export type ImageResult = { ok: true; dataUrl: string } | { ok: false; error: string };
 
 export const generateQuestionImage = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({ prompt: z.string().trim().min(3).max(500) }).parse(data))
+  .inputValidator((data) => z.object({ prompt: z.string().trim().min(3).max(1500), kind: z.enum(["question", "cover"]).optional() }).parse(data))
   .handler(async ({ data }): Promise<ImageResult> => {
     const apiKey = process.env["OPENROUTER_API_KEY"];
     if (!apiKey) return { ok: false, error: "ИИ не настроен" };
@@ -20,7 +31,7 @@ export const generateQuestionImage = createServerFn({ method: "POST" })
         messages: [
           {
             role: "user",
-            content: `Сгенерируй иллюстрацию для школьной викторины, без текста на изображении: ${data.prompt}`,
+            content: data.kind === "cover" ? `${COVER_STYLE}\n\nТема викторины:\n${data.prompt}` : `Сгенерируй иллюстрацию для школьной викторины, без текста на изображении: ${data.prompt}`,
           },
         ],
       }),

@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Loader2, Shuffle, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateQuestionImage } from "@/lib/quiz-image.functions";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
 import { LaunchFlow } from "@/components/quiz/LaunchFlow";
@@ -47,6 +49,47 @@ function Editor() {
   useEffect(() => {
     if (quiz !== EMPTY) saveDraft(quiz);
   }, [quiz]);
+
+  const runCover = useServerFn(generateQuestionImage);
+  const [coverLoading, setCoverLoading] = useState(false);
+
+  async function generateCover() {
+    const qs = quiz.questions.map((q) => q.text.trim()).filter(Boolean).slice(0, 8);
+    const prompt = `Название: ${quiz.title.trim() || "Викторина"}${qs.length ? `\nВопросы: ${qs.join("; ")}` : ""}`.slice(0, 1500);
+    setCoverLoading(true);
+    try {
+      const res = await runCover({ data: { prompt, kind: "cover" } });
+      if (res.ok) {
+        setQuiz((q) => ({ ...q, cover: res.dataUrl }));
+        toast.success("Обложка создана");
+      } else toast.error(res.error);
+    } catch {
+      toast.error("Не удалось создать обложку");
+    } finally {
+      setCoverLoading(false);
+    }
+  }
+
+  const moveQ = (i: number, d: -1 | 1) =>
+    setQuiz((q) => {
+      const j = i + d;
+      if (j < 0 || j >= q.questions.length) return q;
+      const arr = [...q.questions];
+      [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+      return { ...q, questions: arr };
+    });
+
+  function shuffleQ() {
+    setQuiz((q) => {
+      const arr = [...q.questions];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j]!, arr[i]!];
+      }
+      return { ...q, questions: arr };
+    });
+    toast.success("Порядок вопросов перемешан");
+  }
 
   const updateQ = (i: number, patch: Partial<Draft["questions"][number]>) =>
     setQuiz((q) => ({ ...q, questions: q.questions.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
@@ -99,6 +142,14 @@ function Editor() {
             >
               <Pencil className="size-5" /> Изменить обложку
             </button>
+            <button
+              onClick={generateCover}
+              disabled={coverLoading}
+              className="absolute right-4 top-20 flex h-12 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-card hover:opacity-90 disabled:opacity-70"
+            >
+              {coverLoading ? <Loader2 className="size-5 animate-spin" /> : <Sparkles className="size-5" />}
+              {coverLoading ? "Создаём обложку…" : "Сгенерировать обложку"}
+            </button>
           </div>
           <div className="relative z-10 -mt-12 rounded-t-[32px] bg-card p-8">
             <input
@@ -112,10 +163,27 @@ function Editor() {
         </section>
 
         <section className="mt-5 flex flex-col gap-5 rounded-[32px] bg-card p-8">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">Все поля можно редактировать. Меняйте порядок стрелками.</p>
+            <button
+              onClick={shuffleQ}
+              disabled={quiz.questions.length < 2}
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-secondary px-4 text-sm font-semibold disabled:opacity-40"
+            >
+              <Shuffle className="size-4" /> Перемешать вопросы
+            </button>
+          </div>
           {quiz.questions.map((q, i) => (
             <div key={i} className="rounded-3xl bg-secondary p-8">
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-xl font-semibold">Вопрос {i + 1}</h2>
+                <div className="flex items-center gap-3">
+                <button aria-label="Переместить вверх" disabled={i === 0} onClick={() => moveQ(i, -1)} className="text-muted-foreground disabled:opacity-30">
+                  <ArrowUp className="size-5" />
+                </button>
+                <button aria-label="Переместить вниз" disabled={i === quiz.questions.length - 1} onClick={() => moveQ(i, 1)} className="text-muted-foreground disabled:opacity-30">
+                  <ArrowDown className="size-5" />
+                </button>
                 <button
                   aria-label="Удалить вопрос"
                   disabled={quiz.questions.length === 1}
@@ -124,6 +192,7 @@ function Editor() {
                 >
                   <Trash2 className="size-5" />
                 </button>
+                </div>
               </div>
               <div className="mt-4 flex max-w-[884px] items-start gap-4">
                 <div className="min-w-0 flex-1">
