@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDownWideNarrow, Check, Pencil, Trash2 } from "lucide-react";
+import { ArrowDownWideNarrow, Check, Pencil, Sparkles, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/quiz/Header";
 import { CreateQuizCard, QuizCard } from "@/components/quiz/QuizCard";
+import { AiGenerateDrawer } from "@/components/quiz/AiGenerateDrawer";
 import { FolderDialog } from "@/components/quiz/FolderDialog";
 import { Modal, ModalActions } from "@/components/quiz/Modal";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -51,6 +52,7 @@ function Index() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const folder = folders.find((f) => f.id === tab);
   const activeTab = folder || BASE_TABS.some((t) => t.id === tab) ? tab : "all";
@@ -136,6 +138,13 @@ function Index() {
               </button>
             </div>
           )}
+          <button
+            onClick={() => setAiOpen(true)}
+            className="ml-auto flex h-14 items-center gap-3 rounded-2xl bg-primary px-5 text-base font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          >
+            <Sparkles className="size-6" />
+            Сгенерировать викторину
+          </button>
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -155,6 +164,8 @@ function Index() {
           </p>
         )}
       </main>
+
+      <AiGenerateDrawer open={aiOpen} onOpenChange={setAiOpen} />
 
       <FolderDialog
         open={createOpen}
