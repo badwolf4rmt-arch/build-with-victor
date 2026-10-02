@@ -1,10 +1,15 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, Eye, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, Check, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
+import { LaunchFlow } from "@/components/quiz/LaunchFlow";
+import { PrintTestDrawer } from "@/components/quiz/PrintTestDrawer";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { PreviewOverlay } from "@/components/quiz/PreviewOverlay";
-import { addQuizToLibrary, loadDraft, saveDraft, type Draft } from "@/lib/quiz-store";
+import { addQuizToLibrary, loadDraft, saveDraft, type Draft, type Quiz } from "@/lib/quiz-store";
 
 export const Route = createFileRoute("/quiz/new")({
   head: () => ({
@@ -23,12 +28,14 @@ export const Route = createFileRoute("/quiz/new")({
 const EMPTY: Draft = { title: "Новая викторина", questions: [{ text: "", correct: "", incorrect: ["", "", ""] }] };
 
 function Editor() {
-  const navigate = useNavigate();
   const [quiz, setQuiz] = useState<Draft>(EMPTY);
   const [imageFor, setImageFor] = useState<number | null>(null);
   const [replaceFor, setReplaceFor] = useState<number | null>(null);
   const [coverOpen, setCoverOpen] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [saved, setSaved] = useState<Quiz | null>(null);
+  const [launch, setLaunch] = useState(false);
+  const [print, setPrint] = useState(false);
 
   useEffect(() => {
     const d = loadDraft();
@@ -47,9 +54,8 @@ function Editor() {
       toast.error("Введите название викторины");
       return;
     }
-    addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover);
+    setSaved(addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id));
     toast.success("Викторина сохранена");
-    navigate({ to: "/" });
   }
 
   return (
@@ -58,28 +64,26 @@ function Editor() {
         <Link to="/" className="flex h-12 items-center gap-2 rounded-xl bg-secondary px-4 text-sm font-semibold">
           <ArrowLeft className="size-5" /> Назад
         </Link>
-        <div className="flex items-center gap-3">
-        <button
-          onClick={() => setPreview(true)}
-          className="flex h-12 items-center gap-2 rounded-xl bg-secondary px-5 text-sm font-semibold hover:bg-muted"
-        >
-          <Eye className="size-5" /> Предпросмотр
-        </button>
-        <button
-          onClick={save}
-          className="flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
-        >
-          <Save className="size-5" /> Сохранить
-        </button>
+        <div className="flex items-center gap-4">
+          <HeaderAction disabled={!saved} onClick={() => setPreview(true)} icon={<Eye className="size-5" />} label="Предпросмотр" />
+          <HeaderAction disabled={!saved} onClick={() => setPrint(true)} icon={<Download className="size-5" />} label="Скачать в виде теста" />
+          <HeaderAction disabled={!saved} onClick={() => setLaunch(true)} icon={<Play className="size-5 fill-current" />} label="Запустить" filled />
+          <button
+            onClick={save}
+            className="flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+          >
+            <Save className="size-5" /> Сохранить
+          </button>
         </div>
       </header>
+      {saved && <LaunchFlow quiz={saved} open={launch} onOpenChange={setLaunch} />}
+      {saved && <PrintTestDrawer open={print} onOpenChange={setPrint} title={saved.title} items={saved.items ?? quiz.questions} />}
       {preview && (
         <PreviewOverlay
           title={quiz.title}
           items={quiz.questions}
           onClose={() => setPreview(false)}
-          launchLabel="Сохранить"
-          onLaunch={() => { setPreview(false); save(); }}
+          onLaunch={() => { setPreview(false); setLaunch(true); }}
         />
       )}
 
@@ -247,5 +251,29 @@ function Editor() {
         }}
       />
     </div>
+  );
+}
+
+function HeaderAction({ disabled, onClick, icon, label, filled }: { disabled: boolean; onClick: () => void; icon: ReactNode; label: string; filled?: boolean }) {
+  const btn = (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex h-12 items-center gap-2 rounded-xl text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-40",
+        filled ? "bg-secondary px-5 hover:bg-muted" : "px-1 hover:text-primary",
+      )}
+    >
+      {icon} {label}
+    </button>
+  );
+  if (!disabled) return btn;
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild><span tabIndex={0}>{btn}</span></TooltipTrigger>
+        <TooltipContent>Сначала сохраните викторину</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
