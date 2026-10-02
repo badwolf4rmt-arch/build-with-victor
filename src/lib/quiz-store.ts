@@ -24,15 +24,6 @@ export type Folder = {
 export const SEED_QUIZZES: Quiz[] = [
   { id: "q1", title: "Картины русских живописцев.", questions: 10, items: RUSSIAN_PAINTERS, mine: true, createdAt: 10 },
   {
-    id: "q2",
-    title:
-      "Картины русских живописцев. Угадай автора Картины русских живописцев. Угадай автора Картины русских",
-    questions: 10,
-    items: RUSSIAN_PAINTERS,
-    mine: true,
-    createdAt: 9,
-  },
-  {
     id: "q3",
     title: "Хранители Земли: экологические организации мира",
     questions: 10,
@@ -64,7 +55,6 @@ export const SEED_QUIZZES: Quiz[] = [
   },
   { id: "q6", title: "Картины иностранных живописцев", questions: 10, items: FOREIGN_PAINTERS, image: leaf, mine: true, createdAt: 5 },
   { id: "q7", title: "Айвазовский: картины", questions: 8, items: AIVAZOVSKY, mine: true, createdAt: 4 },
-  { id: "q8", title: "Картины русских живописцев", questions: 10, items: RUSSIAN_PAINTERS, mine: true, createdAt: 3 },
 ];
 
 export const SEED_FOLDERS: Folder[] = [
@@ -78,6 +68,21 @@ const KEY = "quiz-builder-state-v1";
 type State = { quizzes: Quiz[]; folders: Folder[] };
 type Stored = { folders: Folder[]; custom?: Quiz[] };
 
+const norm = (t: string) => t.trim().replace(/[.\s]+$/, "").toLowerCase();
+/** Custom entries override seeds with the same id; old saved copies of seeds (same title) are dropped. */
+function mergeQuizzes(custom: Quiz[], seeds: Quiz[]): Quiz[] {
+  const seedTitles = new Set(seeds.map((q) => norm(q.title)));
+  const seen = new Set<string>();
+  const extra = custom.filter((q) => {
+    if (seeds.some((x) => x.id === q.id)) return false;
+    const t = norm(q.title);
+    if (seedTitles.has(t) || seen.has(t)) return false;
+    seen.add(t);
+    return true;
+  });
+  return [...extra, ...seeds.map((q) => custom.find((c) => c.id === q.id) ?? q)];
+}
+
 export function useQuizStore() {
   const [state, setState] = useState<State>({ quizzes: SEED_QUIZZES, folders: SEED_FOLDERS });
   const [loaded, setLoaded] = useState(false);
@@ -88,7 +93,7 @@ export function useQuizStore() {
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<Stored>;
         setState((s) => ({
-          quizzes: Array.isArray(parsed.custom) ? [...parsed.custom, ...s.quizzes] : s.quizzes,
+          quizzes: Array.isArray(parsed.custom) ? mergeQuizzes(parsed.custom, s.quizzes) : s.quizzes,
           folders: Array.isArray(parsed.folders) ? parsed.folders : s.folders,
         }));
       }
@@ -100,7 +105,7 @@ export function useQuizStore() {
 
   useEffect(() => {
     if (!loaded) return;
-    const custom = state.quizzes.filter((q) => q.id.startsWith("ai-"));
+    const custom = state.quizzes.filter((q) => q.id.startsWith("ai-") || !SEED_QUIZZES.includes(q));
     localStorage.setItem(KEY, JSON.stringify({ folders: state.folders, custom }));
   }, [state.folders, state.quizzes, loaded]);
 
@@ -170,7 +175,7 @@ export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: 
   const raw = localStorage.getItem(KEY);
   const stored: Stored = raw ? JSON.parse(raw) : { folders: SEED_FOLDERS };
   const prev = stored.custom?.find((q) => q.id === id);
-  const quiz: Quiz = { id: prev?.id ?? `ai-${Date.now()}`, title, questions: items.length, items, image, mine: true, createdAt: prev?.createdAt ?? Date.now() };
+  const quiz: Quiz = { id: prev?.id ?? id ?? `ai-${Date.now()}`, title, questions: items.length, items, image, mine: true, createdAt: prev?.createdAt ?? Date.now() };
   stored.custom = [quiz, ...(stored.custom ?? []).filter((q) => q.id !== quiz.id)];
   stored.folders ??= SEED_FOLDERS;
   try {

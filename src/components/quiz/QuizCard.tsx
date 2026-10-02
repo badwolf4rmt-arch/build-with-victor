@@ -37,7 +37,7 @@ export function QuizCard({ quiz, onDelete }: { quiz: Quiz; onDelete?: (id: strin
       title: quiz.title,
       questions: items.length ? items : [{ text: "", correct: "", incorrect: ["", "", ""] }],
       cover: quiz.image,
-      id: quiz.id.startsWith("ai-") ? quiz.id : undefined,
+      id: quiz.id,
     });
     navigate({ to: "/quiz/new" });
   }
