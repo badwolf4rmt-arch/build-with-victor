@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Check, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -28,7 +28,6 @@ export const Route = createFileRoute("/quiz/new")({
 const EMPTY: Draft = { title: "Новая викторина", questions: [{ text: "", correct: "", incorrect: ["", "", ""] }] };
 
 function Editor() {
-  const navigate = useNavigate();
   const [quiz, setQuiz] = useState<Draft>(EMPTY);
   const [imageFor, setImageFor] = useState<number | null>(null);
   const [replaceFor, setReplaceFor] = useState<number | null>(null);
