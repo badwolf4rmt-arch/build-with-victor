@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Check, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, Eye, ImagePlus, Pencil, Plus, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
+import { PreviewOverlay } from "@/components/quiz/PreviewOverlay";
 import { addQuizToLibrary, loadDraft, saveDraft, type Draft } from "@/lib/quiz-store";
 
 export const Route = createFileRoute("/quiz/new")({
@@ -27,6 +28,7 @@ function Editor() {
   const [imageFor, setImageFor] = useState<number | null>(null);
   const [replaceFor, setReplaceFor] = useState<number | null>(null);
   const [coverOpen, setCoverOpen] = useState(false);
+  const [preview, setPreview] = useState(false);
 
   useEffect(() => {
     const d = loadDraft();
@@ -45,7 +47,7 @@ function Editor() {
       toast.error("Введите название викторины");
       return;
     }
-    addQuizToLibrary(quiz.title.trim(), quiz.questions.length, quiz.cover);
+    addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover);
     toast.success("Викторина сохранена");
     navigate({ to: "/" });
   }
@@ -56,13 +58,30 @@ function Editor() {
         <Link to="/" className="flex h-12 items-center gap-2 rounded-xl bg-secondary px-4 text-sm font-semibold">
           <ArrowLeft className="size-5" /> Назад
         </Link>
+        <div className="flex items-center gap-3">
+        <button
+          onClick={() => setPreview(true)}
+          className="flex h-12 items-center gap-2 rounded-xl bg-secondary px-5 text-sm font-semibold hover:bg-muted"
+        >
+          <Eye className="size-5" /> Предпросмотр
+        </button>
         <button
           onClick={save}
           className="flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
         >
           <Save className="size-5" /> Сохранить
         </button>
+        </div>
       </header>
+      {preview && (
+        <PreviewOverlay
+          title={quiz.title}
+          items={quiz.questions}
+          onClose={() => setPreview(false)}
+          launchLabel="Сохранить"
+          onLaunch={() => { setPreview(false); save(); }}
+        />
+      )}
 
       <main className="mx-auto mt-6 max-w-[1278px] px-4 xl:px-0">
         <section className="overflow-hidden rounded-[32px] bg-card">

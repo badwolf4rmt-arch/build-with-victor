@@ -2,7 +2,8 @@ import { Eye, Play, Plus, Settings } from "lucide-react";
 import { useState } from "react";
 import { LaunchFlow } from "./LaunchFlow";
 import { toast } from "sonner";
-import { pluralQuestions, type Quiz } from "@/lib/quiz-store";
+import { PreviewOverlay } from "./PreviewOverlay";
+import { getQuizItems, pluralQuestions, type Quiz } from "@/lib/quiz-store";
 import { QuizCover } from "./QuizCover";
 
 export function CreateQuizCard() {
@@ -21,9 +22,18 @@ export function CreateQuizCard() {
 
 export function QuizCard({ quiz }: { quiz: Quiz }) {
   const [launch, setLaunch] = useState(false);
+  const [preview, setPreview] = useState(false);
   return (
     <article className="flex min-h-[220px] flex-col justify-between gap-6 rounded-2xl bg-card p-5 shadow-card">
       <LaunchFlow quiz={quiz} open={launch} onOpenChange={setLaunch} />
+      {preview && (
+        <PreviewOverlay
+          title={quiz.title}
+          items={getQuizItems(quiz)}
+          onClose={() => setPreview(false)}
+          onLaunch={() => { setPreview(false); setLaunch(true); }}
+        />
+      )}
       <div className="flex gap-4">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <h3 className="font-display text-xl font-semibold leading-6">{quiz.title}</h3>
@@ -48,7 +58,7 @@ export function QuizCard({ quiz }: { quiz: Quiz }) {
             Запустить
           </button>
           <button
-            onClick={() => toast(`Предпросмотр: ${quiz.title}`)}
+            onClick={() => setPreview(true)}
             className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-semibold transition-colors hover:bg-secondary"
           >
             <Eye className="size-4" />
