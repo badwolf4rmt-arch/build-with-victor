@@ -1,8 +1,5 @@
-import { createOpenAI } from "@ai-sdk/openai";
-import { streamText } from "ai";
-
-const GATEWAY = "https://ai.gateway.lovable.dev/v1";
-const MODEL = "openai/gpt-6-astra";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL = "google/gemini-3.1-pro-preview";
 
 export class GatewayError extends Error {
   constructor(
@@ -13,45 +10,34 @@ export class GatewayError extends Error {
   }
 }
 
-/** Streams a Responses call through Lovable AI Gateway and returns the final text. */
+/** Calls OpenRouter chat completions and returns the final text. */
 export async function generateText(system: string, prompt: string): Promise<string> {
-  const apiKey = process.env['LOVABLE_API_KEY'];
+  const apiKey = process.env["OPENROUTER_API_KEY"];
   if (!apiKey) throw new GatewayError(401, "ИИ не настроен");
 
-  const provider = createOpenAI({
-    baseURL: GATEWAY,
-    apiKey,
-    headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
-  });
-
-  let failure: unknown;
-  const result = streamText({
-    model: provider.responses(MODEL),
-    system,
-    prompt,
-    onError: ({ error }) => {
-      failure = error;
+  const res = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
     },
-    providerOptions: {
-      openai: {
-        forceReasoning: true,
-        reasoningEffort: "low",
-        reasoningSummary: "auto",
-        store: false,
-        include: ["reasoning.encrypted_content"],
-      },
-    },
-  });
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: prompt },
+      ],
+    }),
+  }).catch(() => null);
 
-  const text = await Promise.resolve(result.text).catch((e: unknown) => {
-    failure ??= e;
-    return "";
-  });
-  if (failure) {
-    const status = (failure as { statusCode?: number }).statusCode ?? 500;
-    if (status === 402) throw new GatewayError(402, "Закончились кредиты ИИ. Пополните баланс в настройках.");
-    if (status === 429) throw new GatewayError(429, "Слишком много запросов. Попробуйте через минуту.");
-    throw new GatewayError(status, "ИИ временно недоступен");
-  }
+  if (!res) throw new GatewayError(500, "ИИ временно недоступен");
+  if (res.status === 401) throw new GatewayError(401, "Ключ OpenRouter недействителен. Проверьте ключ в настройках.");
+  if (res.status === 402) throw new GatewayError(402, "Закончились средства на счёте OpenRouter. Пополните баланс.");
+  if (res.status === 429) throw new GatewayError(429, "Слишком много запросов. Попробуйте через минуту.");
+  if (!res.ok) throw new GatewayError(res.status, "ИИ временно недоступен");
+
+  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const text = json.choices?.[0]?.message?.content;
+  if (!text) throw new GatewayError(500, "ИИ не вернул ответ");
   return text;
 }

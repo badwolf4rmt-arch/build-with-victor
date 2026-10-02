@@ -12,5 +12,5 @@
 ## Project rules
 - Quiz library UI lives in `src/components/quiz/*` with state in `src/lib/quiz-store.ts` (folders persisted to localStorage) — frontend-only prototype until a backend is requested.
 - Design tokens (colors, card shadow, quiz gradient) are defined in `src/styles.css`; components use semantic classes only — keeps the Figma palette in one place.
-- AI quiz generation runs in a server function (`src/lib/quiz-ai.functions.ts`) via Lovable AI Gateway (`ai-gateway.server.ts`) — keeps the API key server-side; generated drafts pass to the editor via sessionStorage.
+- AI quiz generation runs in a server function (`src/lib/quiz-ai.functions.ts`) via OpenRouter (`ai-gateway.server.ts`, `OPENROUTER_API_KEY` secret, model `google/gemini-3.1-pro-preview`) — keeps the API key server-side; generated drafts pass to the editor via sessionStorage.
 - Question images are cropped client-side to JPEG data URLs and stored in the draft; AI image generation goes through `src/lib/quiz-image.functions.ts` — no file storage until a backend is added.
