@@ -45,7 +45,7 @@ const BASE_TABS = [
 ] as const;
 
 function Index() {
-  const { quizzes, folders, createFolder, updateFolder, deleteFolder } = useQuizStore();
+  const { quizzes, folders, createFolder, updateFolder, deleteFolder, deleteQuiz } = useQuizStore();
   const [tab, setTab] = useState<string>("all");
   const search = "";
   const navigate = useNavigate();
@@ -160,7 +160,7 @@ function Index() {
 
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
           {visible.map((q) => (
-            <QuizCard key={q.id} quiz={q} />
+            <QuizCard key={q.id} quiz={q} onDelete={deleteQuiz} />
           ))}
         </div>
 
