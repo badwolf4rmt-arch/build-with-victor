@@ -39,7 +39,7 @@ export function PreviewOverlay({
   }, [q, active]);
 
   return (
-    <div role="dialog" aria-label={`Предпросмотр: ${title}`} className="fixed inset-0 z-50 flex flex-col bg-overlay">
+    <div role="dialog" aria-label={`Предпросмотр: ${title}`} className="fixed inset-0 z-50 flex flex-col bg-preview-bar">
       <button onClick={onClose} className="mx-auto flex h-[60px] items-center gap-2 text-sm font-semibold text-card">
         <X className="size-5" /> Закрыть предпросмотр
       </button>
@@ -92,7 +92,7 @@ export function PreviewOverlay({
                     onClick={() => setActive(i)}
                     className={cn(
                       "flex w-full gap-3 rounded-2xl p-3 text-left text-sm font-semibold transition-colors",
-                      i === active ? "bg-accent" : "bg-secondary hover:bg-muted",
+                      i === active ? "bg-info" : "bg-secondary hover:bg-muted",
                     )}
                   >
                     <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-card text-xs">{i + 1}</span>
