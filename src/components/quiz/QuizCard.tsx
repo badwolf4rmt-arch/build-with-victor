@@ -1,4 +1,4 @@
-import { Eye, Pencil, Play, Plus } from "lucide-react";
+import { Eye, Pencil, Play, Plus, Settings, Trash2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { LaunchFlow } from "./LaunchFlow";
@@ -6,6 +6,12 @@ import { toast } from "sonner";
 import { PreviewOverlay } from "./PreviewOverlay";
 import { saveDraft, getQuizItems, pluralQuestions, type Quiz } from "@/lib/quiz-store";
 import { QuizCover } from "./QuizCover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function CreateQuizCard() {
   return (
@@ -21,7 +27,7 @@ export function CreateQuizCard() {
   );
 }
 
-export function QuizCard({ quiz }: { quiz: Quiz }) {
+export function QuizCard({ quiz, onDelete }: { quiz: Quiz; onDelete?: (id: string) => void }) {
   const [launch, setLaunch] = useState(false);
   const [preview, setPreview] = useState(false);
   const navigate = useNavigate();
@@ -77,14 +83,32 @@ export function QuizCard({ quiz }: { quiz: Quiz }) {
             Предпросмотр
           </button>
         </div>
-        <button
-          aria-label="Редактировать викторину"
-          title="Редактировать: вопросы и обложка"
-          onClick={edit}
-          className="flex size-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-secondary"
-        >
-          <Pencil className="size-4" />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label="Настройки викторины"
+              className="flex size-8 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:bg-secondary"
+            >
+              <Settings className="size-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={edit} className="gap-2">
+              <Pencil className="size-4" />
+              Редактировать
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                onDelete?.(quiz.id);
+                toast(`Викторина «${quiz.title}» удалена`);
+              }}
+              className="gap-2"
+            >
+              <Trash2 className="size-4" />
+              Удалить
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </article>
   );
