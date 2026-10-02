@@ -11,6 +11,7 @@ export type Quiz = {
   grade?: string;
   mine: boolean;
   createdAt: number;
+  items?: DraftQuestion[];
 };
 
 export type Folder = {
@@ -146,16 +147,29 @@ export function loadDraft(): Draft | null {
   }
 }
 /** Saves a finished quiz into the library (merged on next store load). */
-export function addQuizToLibrary(title: string, questions: number, image?: string) {
+export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: string) {
   const raw = localStorage.getItem(KEY);
   const stored: Stored = raw ? JSON.parse(raw) : { folders: SEED_FOLDERS };
-  const quiz: Quiz = { id: `ai-${Date.now()}`, title, questions, image, mine: true, createdAt: Date.now() };
+  const quiz: Quiz = { id: `ai-${Date.now()}`, title, questions: items.length, items, image, mine: true, createdAt: Date.now() };
   stored.custom = [quiz, ...(stored.custom ?? [])];
   stored.folders ??= SEED_FOLDERS;
   try {
     localStorage.setItem(KEY, JSON.stringify(stored));
   } catch {
-    quiz.image = undefined; // storage full — keep the quiz without its cover
+    // storage full — keep the quiz without images
+    quiz.image = undefined;
+    quiz.items = items.map(({ image: _img, ...q }) => q);
     localStorage.setItem(KEY, JSON.stringify(stored));
   }
+}
+
+/** Demo questions shown for library quizzes that have no stored content yet. */
+const DEMO_ITEMS: DraftQuestion[] = [
+  { text: "В каком году состоялся самый первый полёт человека в космос и кто стал первым, побывавшим в космосе?", correct: "1961 — Юрий Гагарин стал первым космонавтом в Советском Союзе", incorrect: ["1956 — Валентина Терешкова стала первым космонавтом в СССР", "1965 — Герман Титов стал первым космонавтом в Советском Союзе", "1960 — Владимир Комаров стал первым космонавтом в СССР"] },
+  { text: "Сколько длился первый космический полёт?", correct: "108 минут", incorrect: ["30 минут", "5 часов", "Одни сутки"] },
+  { text: "Кто первым вышел в открытый космос?", correct: "Алексей Леонов", incorrect: ["Юрий Гагарин", "Нил Армстронг", "Герман Титов"] },
+  { text: "Кто был главным конструктором первых космических кораблей?", correct: "Сергей Королёв", incorrect: ["Константин Циолковский", "Андрей Туполев", "Михаил Калашников"] },
+];
+export function getQuizItems(quiz: Quiz): DraftQuestion[] {
+  return quiz.items?.length ? quiz.items : DEMO_ITEMS;
 }
