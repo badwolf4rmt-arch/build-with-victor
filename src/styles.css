@@ -73,7 +73,14 @@
   --color-preview-bar: var(--preview-bar);
   --color-brand-green: var(--brand-green);
   --color-brand-teal: var(--brand-teal);
+  --color-answer-border: var(--answer-border);
+  --color-game-card: var(--game-card);
+  --color-game-card-line: var(--game-card-line);
+  --color-game-card-empty: var(--game-card-empty);
+  --color-team-chip: var(--team-chip);
+  --color-score-star: var(--score-star);
   --shadow-card: var(--shadow-card);
+  --shadow-game-card: var(--shadow-game-card);
   --font-sans: "Onest", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Onest", ui-sans-serif, system-ui, sans-serif;
 }
@@ -115,6 +122,14 @@
   --muted-answer: #a7b1c2;
   --preview-bar: #475569;
   --brand-teal: #0e6e74;
+  --answer-border: #0083e8;
+  --gradient-action: linear-gradient(180deg, #2ba3ff 0.8%, #0988e8 127.7%);
+  --game-card: #62bcfc;
+  --game-card-line: #54b0f2;
+  --game-card-empty: rgb(180 220 248 / 0.6);
+  --team-chip: #d6e7fc;
+  --score-star: #ffb800;
+  --shadow-game-card: 0 2px 3px rgb(0 60 134 / 0.26), 0 7px 11px rgb(0 60 134 / 0.23);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -178,4 +193,8 @@
 
 @utility bg-quiz-gradient {
   background-image: var(--gradient-quiz);
+}
+
+@utility bg-action-gradient {
+  background-image: var(--gradient-action);
 }

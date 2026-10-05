@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Star, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { Modal } from "@/components/quiz/Modal";
+import { CardOrnament, ScoreStar } from "@/components/quiz/GameArt";
 import { cn } from "@/lib/utils";
-import { applyBonus, BONUSES, loadSetup, type BonusId, type GameSetup, type Team } from "@/lib/game";
+import { getQuizItems, saveDraft, useQuizStore } from "@/lib/quiz-store";
+import { applyBonus, BONUSES, loadSetup, QUESTION_POINTS, type BonusId, type GameSetup, type Team } from "@/lib/game";
 import bg from "@/assets/game-bg.jpg";
 
 export const Route = createFileRoute("/play")({
@@ -31,6 +33,7 @@ function PlayPage() {
   const [open, setOpen] = useState<Cell | null>(null);
   const [finished, setFinished] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
+  const { quizzes } = useQuizStore();
 
   useEffect(() => {
     const s = loadSetup();
@@ -62,7 +65,7 @@ function PlayPage() {
     if (!open) return;
     let next = teams;
     if (open.bonus) next = applyBonus(teams, turn, open.bonus);
-    else if (correct) next = teams.map((t, i) => (i === turn ? { ...t, score: t.score + 5 } : t));
+    else if (correct) next = teams.map((t, i) => (i === turn ? { ...t, score: t.score + QUESTION_POINTS } : t));
     setTeams(next);
     const nextCells = cells.map((c) => (c.n === open.n ? { ...c, done: true } : c));
     setCells(nextCells);
@@ -77,39 +80,72 @@ function PlayPage() {
   const bonus = open?.bonus ? BONUSES.find((b) => b.id === open.bonus) : undefined;
   const ranking = [...teams].sort((a, b) => b.score - a.score);
 
+  const rows = Math.ceil(cells.length / cols);
+
+  function editQuiz() {
+    const quiz = quizzes.find((q) => q.id === setup?.quizId);
+    if (!quiz) return;
+    const items = getQuizItems(quiz);
+    saveDraft({ title: quiz.title, questions: items.length ? items : [{ text: "", correct: "", incorrect: ["", "", ""] }], cover: quiz.image, id: quiz.id });
+    void navigate({ to: "/quiz/new" });
+  }
+
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex h-screen min-h-[600px] flex-col">
       <img src={bg} alt="" className="fixed inset-0 -z-10 h-full w-full object-cover" />
       <header className="flex items-center justify-between gap-4 rounded-b-[32px] bg-card px-6 py-5">
-        <div className="w-10" />
+        <div className="hidden w-[177px] lg:block" />
         <div className="flex flex-wrap justify-center gap-3">
           {teams.map((t, i) => (
-            <div key={i} className={cn("flex items-center gap-2 rounded-full border-2 px-2 py-1 pr-5", i === turn ? "border-accent bg-accent" : "border-accent bg-card")}>
-              <span className="flex size-10 items-center justify-center rounded-full bg-card text-2xl">{t.avatar}</span>
-              <div>
-                <p className="flex items-center gap-1 text-lg font-bold leading-5"><Star className="size-5 fill-amber-400 text-amber-400" />{t.score}</p>
-                <p className="text-xs">{t.name}</p>
+            <div
+              key={i}
+              className={cn(
+                "flex items-center gap-2 rounded-full border-[3px] border-team-chip py-2 pl-2 pr-4 lg:w-[230px]",
+                i === turn ? "bg-team-chip" : "bg-card",
+              )}
+            >
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-team-chip text-3xl">{t.avatar}</span>
+              <div className="min-w-0">
+                <p className="flex items-center gap-1 font-display text-2xl font-semibold leading-8">
+                  <ScoreStar className="size-8 text-score-star" />
+                  {t.score}
+                </p>
+                <p className="truncate text-base leading-5">{t.name}</p>
               </div>
             </div>
           ))}
         </div>
-        <button onClick={() => setFinished(true)} className="flex h-10 items-center gap-2 rounded-xl bg-secondary px-4 text-sm font-semibold hover:bg-muted">
-          <X className="size-4" /> Завершить
-        </button>
+        <div className="flex items-center gap-5">
+          <button onClick={editQuiz} aria-label="Редактировать викторину" className="flex size-12 items-center justify-center rounded-2xl bg-secondary hover:bg-muted">
+            <Pencil className="size-5" />
+          </button>
+          <button onClick={() => setFinished(true)} className="flex h-12 items-center gap-2.5 rounded-2xl bg-secondary pl-3.5 pr-[18px] text-sm font-semibold hover:bg-muted">
+            <X className="size-5" /> Завершить
+          </button>
+        </div>
       </header>
 
-      <main className="grid flex-1 auto-rows-[minmax(140px,240px)] content-start gap-4 p-6" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+      <main
+        className="grid min-h-0 flex-1 gap-4 p-6"
+        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, minmax(120px, 1fr))` }}
+      >
         {cells.map((c) => (
           <button
             key={c.n}
             disabled={c.done}
             onClick={() => setOpen(c)}
+            aria-label={c.done ? `Карточка ${c.n} открыта` : `Карточка ${c.n}`}
             className={cn(
-              "min-h-[140px] rounded-[28px] font-display text-6xl font-semibold transition-transform",
-              c.done ? "bg-card/30 backdrop-blur-md" : "bg-primary/70 text-primary-foreground shadow-card hover:scale-[1.02]",
+              "relative overflow-hidden rounded-[48px] transition-transform",
+              c.done ? "bg-game-card-empty backdrop-blur-md" : "bg-game-card shadow-game-card hover:scale-[1.02]",
             )}
           >
-            {!c.done && c.n}
+            {!c.done && (
+              <>
+                <CardOrnament className="absolute left-1/2 top-1/2 h-[422px] w-[450px] max-w-none -translate-x-1/2 -translate-y-1/2" />
+                <span className="relative font-display text-[56px] font-semibold leading-none text-primary-foreground lg:text-[80px]">{c.n}</span>
+              </>
+            )}
           </button>
         ))}
       </main>
@@ -149,7 +185,7 @@ function PlayPage() {
             })}
             {picked && (
               <>
-                <p className="text-sm font-semibold">{picked === question.correct ? "Верно! +5 баллов" : `Неверно. Правильный ответ: ${question.correct}`}</p>
+                <p className="text-sm font-semibold">{picked === question.correct ? `Верно! +${QUESTION_POINTS} баллов` : `Неверно. Правильный ответ: ${question.correct}`}</p>
                 <button onClick={() => resolve(picked === question.correct)} className="h-12 rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Дальше</button>
               </>
             )}

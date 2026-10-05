@@ -49,6 +49,7 @@ export function QuizCard({ quiz, onDelete }: { quiz: Quiz; onDelete?: (id: strin
           title={quiz.title}
           items={getQuizItems(quiz)}
           onClose={() => setPreview(false)}
+          onEdit={() => { setPreview(false); edit(); }}
           onLaunch={() => { setPreview(false); setLaunch(true); }}
         />
       )}
