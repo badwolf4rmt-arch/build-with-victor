@@ -94,7 +94,7 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
       const res = await run({
         data: {
           count,
-          subject: subject || undefined,
+          subject: subject.trim() || undefined,
           grade: grade ? Number(grade) : undefined,
           topic: topic.trim() || undefined,
           plan: plan?.data,
