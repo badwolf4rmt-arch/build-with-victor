@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { answerPoints, joinGame, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LivePlayer } from "@/lib/live";
+import { answerPoints, canReplaceAnswer, joinGame, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LiveAnswer, type LivePlayer } from "@/lib/live";
 
 export const Route = createFileRoute("/join/$code")({
   head: () => ({
@@ -99,12 +100,12 @@ function JoinPage() {
   if (!q) return shell(<p className="text-center">Ждём следующий вопрос…</p>);
   const done = myAnswers.find((a) => a.question === index);
 
-  if (session.mode === "sync" && (done || session.state === "reveal")) {
+  if (session.mode === "sync" && session.state === "reveal") {
     return shell(
       <>
         {header}
         <p className="py-8 text-center font-display text-2xl font-semibold">
-          {session.state !== "reveal" ? "Ответ принят, ждём остальных" : !done ? "Время вышло" : done.correct ? `Верно! +${done.points}` : "Неверно"}
+          {!done ? "Время вышло" : done.correct ? `Верно! +${done.points}` : "Неверно"}
         </p>
         {session.state === "reveal" && <p className="text-center text-muted-foreground">Правильный ответ: {q.correct}</p>}
       </>,
@@ -124,6 +125,8 @@ function JoinPage() {
         speed={session.speed_scoring}
         startedAt={session.mode === "sync" ? (session.question_started_at ?? Date.now()) : null}
         showFeedback={session.mode === "self"}
+        initialAnswer={done}
+        allowChanges={canReplaceAnswer(session.state, session.mode === "self" && !!done)}
       />
     </>,
   );
@@ -138,15 +141,23 @@ function Question(props: {
   speed: boolean;
   startedAt: number | null;
   showFeedback: boolean;
+  initialAnswer?: LiveAnswer;
+  allowChanges: boolean;
 }) {
   const { q, index } = props;
   const options = useMemo(() => optionsFor(q, index), [q, index]);
   const shownAt = useRef(Date.now());
-  const [picked, setPicked] = useState<string | null>(null);
-  const [points, setPoints] = useState(0);
+  const [picked, setPicked] = useState<string | null>(props.initialAnswer?.answer ?? null);
+  const [points, setPoints] = useState(props.initialAnswer?.points ?? 0);
+
+  useEffect(() => {
+    if (!props.initialAnswer) return;
+    setPicked(props.initialAnswer.answer);
+    setPoints(props.initialAnswer.points);
+  }, [props.initialAnswer]);
 
   const pick = (o: string) => {
-    if (picked) return;
+    if (picked && !props.allowChanges) return;
     setPicked(o);
     const elapsed = Date.now() - (props.startedAt ?? shownAt.current);
     const correct = o === q.correct;
@@ -167,12 +178,14 @@ function Question(props: {
         {options.map((o) => {
           const state = !picked || !props.showFeedback ? (picked === o ? "picked" : "idle") : o === q.correct ? "correct" : o === picked ? "wrong" : "dim";
           return (
-            <button
+            <Button
               key={o}
-              disabled={!!picked}
+              type="button"
+              variant="outline"
+              disabled={!!picked && !props.allowChanges}
               onClick={() => pick(o)}
               className={cn(
-                "min-h-14 rounded-2xl border-2 p-3 text-left text-base font-semibold transition-colors",
+                "h-auto min-h-14 w-full justify-start whitespace-normal rounded-2xl border-2 p-3 text-left text-base font-semibold shadow-none transition-colors",
                 state === "idle" && "border-answer-border hover:bg-info",
                 state === "picked" && "border-primary bg-primary text-primary-foreground",
                 state === "correct" && "border-success bg-success text-success-foreground",
@@ -181,7 +194,7 @@ function Question(props: {
               )}
             >
               {o}
-            </button>
+            </Button>
           );
         })}
       </div>

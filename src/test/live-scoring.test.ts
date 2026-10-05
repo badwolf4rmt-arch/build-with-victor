@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { answerPoints, optionsFor } from "@/lib/live";
+import { answerPoints, canReplaceAnswer, optionsFor } from "@/lib/live";
 
 describe("live game scoring", () => {
   it("wrong answer gives 0", () => expect(answerPoints(false, true, 0)).toBe(0));
@@ -13,5 +13,15 @@ describe("option order", () => {
     const q = { text: "?", correct: "a", incorrect: ["b", "c", "d"] };
     expect(optionsFor(q, 2)).toEqual(optionsFor(q, 2));
     expect([...optionsFor(q, 2)].sort()).toEqual(["a", "b", "c", "d"]);
+  });
+});
+
+describe("answer changes", () => {
+  it("allows replacing an answer while the question is open and the correct answer is hidden", () => {
+    expect(canReplaceAnswer("question", false)).toBe(true);
+  });
+
+  it("locks the answer once the student has seen the correct answer", () => {
+    expect(canReplaceAnswer("reveal", true)).toBe(false);
   });
 });
