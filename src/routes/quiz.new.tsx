@@ -4,6 +4,9 @@ import { ArrowDown, ArrowLeft, ArrowUp, Check, Loader2, Shuffle, Download, Eye, 
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { generateQuestionImage } from "@/lib/quiz-image.functions";
+import { regenerateQuestion } from "@/lib/quiz-ai.functions";
+import { KINDS, kindOf, switchKind, type QuestionKind } from "@/lib/question-kinds";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
 import { LaunchFlow } from "@/components/quiz/LaunchFlow";
@@ -100,6 +103,26 @@ function Editor() {
 
   const updateQ = (i: number, patch: Partial<Draft["questions"][number]>) =>
     setQuiz((q) => ({ ...q, questions: q.questions.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
+
+  const runRegen = useServerFn(regenerateQuestion);
+  const [regenFor, setRegenFor] = useState<number | null>(null);
+  async function regen(i: number, what: "text" | "kind", kind: QuestionKind) {
+    const q = quiz.questions[i];
+    if (!q) return;
+    setRegenFor(i);
+    try {
+      const res = await runRegen({
+        data: { what, kind, question: { text: q.text, correct: q.correct, incorrect: q.incorrect }, title: quiz.title, subject: quiz.subject, grade: quiz.grade, topic: quiz.topic },
+      });
+      if (!res.ok) return void toast.error(res.error);
+      updateQ(i, res.question);
+      toast.success(what === "text" ? "Формулировка обновлена" : `Вопрос переделан: ${KINDS.find((k) => k.id === kind)?.name}`);
+    } catch {
+      toast.error("Не удалось перегенерировать вопрос");
+    } finally {
+      setRegenFor(null);
+    }
+  }
 
   const [saving, setSaving] = useState(false);
   async function save() {
@@ -231,8 +254,31 @@ function Editor() {
           {quiz.questions.map((q, i) => (
             <div key={i} className="rounded-3xl bg-secondary p-8">
               <div className="flex items-center justify-between">
-                <h2 className="font-display text-xl font-semibold">Вопрос {i + 1}</h2>
                 <div className="flex items-center gap-3">
+                  <h2 className="font-display text-xl font-semibold">Вопрос {i + 1}</h2>
+                  <Select value={kindOf(q)} onValueChange={(k) => setQuiz((s) => ({ ...s, questions: s.questions.map((x, j) => (j === i ? switchKind(x, k as QuestionKind) : x)) }))}>
+                    <SelectTrigger aria-label="Механика вопроса" className="h-9 w-[190px] rounded-xl bg-card text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {KINDS.map((k) => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger disabled={regenFor !== null} className="flex h-9 items-center gap-1.5 rounded-xl bg-card px-3 text-sm font-semibold text-primary disabled:opacity-50">
+                    {regenFor === i ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />} Перегенерировать
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => void regen(i, "text", kindOf(q))}>Формулировку вопроса</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Сменить механику</DropdownMenuLabel>
+                    {KINDS.filter((k) => k.id !== kindOf(q)).map((k) => (
+                      <DropdownMenuItem key={k.id} onSelect={() => void regen(i, "kind", k.id)}>{k.name}</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <button aria-label="Переместить вверх" disabled={i === 0} onClick={() => moveQ(i, -1)} className="text-muted-foreground disabled:opacity-30">
                   <ArrowUp className="size-5" />
                 </button>
@@ -291,6 +337,7 @@ function Editor() {
                 </button>
               </div>
 
+              {kindOf(q) === "choice" && (<>
               <h3 className="mt-4 font-display text-xl font-semibold">Варианты ответов</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 Ученики увидят варианты в случайном порядке
@@ -340,6 +387,49 @@ function Editor() {
                   ))}
                 </div>
               </div>
+              </>)}
+              {kindOf(q) === "order" && (
+                <div className="mt-4 max-w-[850px]">
+                  <h3 className="font-display text-xl font-semibold">Элементы в правильном порядке</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">Ученики увидят их перемешанными и будут перетаскивать</p>
+                  <div className="mt-4 flex flex-col gap-3">
+                    {[q.correct, ...q.incorrect].map((a, k, all) => (
+                      <div key={k} className="flex items-center gap-2">
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-card text-sm font-semibold">{k + 1}</span>
+                        <input
+                          value={a}
+                          onChange={(e) => {
+                            const next = all.map((x, m) => (m === k ? e.target.value : x));
+                            updateQ(i, { correct: next[0]!, incorrect: next.slice(1) });
+                          }}
+                          className="h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
+                        />
+                        {all.length > 2 && k > 0 && (
+                          <button aria-label="Удалить элемент" onClick={() => updateQ(i, { incorrect: q.incorrect.filter((_, m) => m !== k - 1) })} className="text-muted-foreground">
+                            <X className="size-5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {q.incorrect.length < 5 && (
+                    <button onClick={() => updateQ(i, { incorrect: [...q.incorrect, ""] })} className="mt-3 flex items-center gap-1 text-sm font-semibold text-primary">
+                      <Plus className="size-4" /> Добавить элемент
+                    </button>
+                  )}
+                </div>
+              )}
+              {kindOf(q) === "input" && (
+                <div className="mt-4 max-w-[850px]">
+                  <h3 className="font-display text-xl font-semibold">Правильный ответ</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">Ученик вписывает ответ сам. Регистр, буква «ё» и знаки препинания не учитываются</p>
+                  <input
+                    value={q.correct}
+                    onChange={(e) => updateQ(i, { correct: e.target.value })}
+                    className="mt-3 h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
+                  />
+                </div>
+              )}
             </div>
           ))}
           <button
