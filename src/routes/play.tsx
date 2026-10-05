@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pencil, X } from "lucide-react";
 import { Modal } from "@/components/quiz/Modal";
 import { CardOrnament, ScoreStar } from "@/components/quiz/GameArt";
+import { GradientButton, QuestionCard } from "@/components/quiz/QuestionCard";
 import { cn } from "@/lib/utils";
 import { getQuizItems, saveDraft, useQuizStore } from "@/lib/quiz-store";
 import { applyBonus, BONUSES, loadSetup, QUESTION_POINTS, type BonusId, type GameSetup, type Team } from "@/lib/game";
@@ -76,7 +77,7 @@ function PlayPage() {
   };
 
   const question = open && open.q !== undefined ? setup.items[open.q] : undefined;
-  const options = question ? shuffled(open!.n, [question.correct, ...question.incorrect]) : [];
+  const options = question ? shuffled(open!.n, [question.correct, ...question.incorrect.filter((x) => x.trim())]) : [];
   const bonus = open?.bonus ? BONUSES.find((b) => b.id === open.bonus) : undefined;
   const ranking = [...teams].sort((a, b) => b.score - a.score);
 
@@ -197,4 +198,54 @@ function shuffled(seed: number, list: string[]) {
     [arr[i], arr[j]] = [arr[j]!, arr[i]!];
   }
   return arr;
+}
+
+/** Card proportions from Figma «Игровое поле»: 361×464 at 1920×1080 — cards stay portrait rectangles on any screen. */
+const CARD_RATIO = 361 / 464;
+const GAP = 16;
+
+function Board({ cells, cols, rows, onOpen }: { cells: Cell[]; cols: number; rows: number; onOpen: (c: Cell) => void }) {
+  const ref = useRef<HTMLElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => {
+      const { width, height } = e!.contentRect;
+      const byHeight = (height - GAP * (rows - 1)) / rows;
+      const byWidth = (width - GAP * (cols - 1)) / cols / CARD_RATIO;
+      const h = Math.max(100, Math.min(byHeight, byWidth));
+      setSize({ w: h * CARD_RATIO, h });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [cols, rows]);
+
+  return (
+    <main ref={ref} className="flex min-h-0 flex-1 items-center justify-center p-6">
+      {size.w > 0 && (
+        <div className="grid" style={{ gap: GAP, gridTemplateColumns: `repeat(${cols}, ${size.w}px)`, gridAutoRows: `${size.h}px` }}>
+          {cells.map((c) => (
+            <button
+              key={c.n}
+              disabled={c.done}
+              onClick={() => onOpen(c)}
+              aria-label={c.done ? `Карточка ${c.n} открыта` : `Карточка ${c.n}`}
+              className={cn(
+                "relative overflow-hidden rounded-[48px] transition-transform",
+                c.done ? "bg-game-card-empty backdrop-blur-md" : "bg-game-card shadow-game-card hover:scale-[1.02]",
+              )}
+            >
+              {!c.done && (
+                <>
+                  <CardOrnament className="absolute left-1/2 top-1/2 h-[422px] w-[450px] max-w-none -translate-x-1/2 -translate-y-1/2" />
+                  <span className="relative font-display text-[56px] font-semibold leading-none text-primary-foreground lg:text-[80px]">{c.n}</span>
+                </>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </main>
+  );
 }

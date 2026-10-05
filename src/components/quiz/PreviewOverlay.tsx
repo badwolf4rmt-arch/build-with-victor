@@ -4,7 +4,8 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { QUESTION_POINTS } from "@/lib/game";
 import type { DraftQuestion } from "@/lib/quiz-store";
-import { ScorePlate, ScoreStar } from "./GameArt";
+import { ScoreStar } from "./GameArt";
+import { GradientButton, QuestionCard } from "./QuestionCard";
 
 /** Full-page quiz preview (Figma «1920 Полная страница»): question card, pagination and the list of questions. */
 export function PreviewOverlay({
@@ -85,40 +86,13 @@ export function PreviewOverlay({
           <h1 className="font-display text-[32px] font-semibold leading-10">{title}</h1>
           <div className="flex flex-col gap-10">
             {q ? (
-              <div className="relative mt-[27px] rounded-[64px] bg-card px-6 py-10 md:px-12">
-                <ScorePlate points={QUESTION_POINTS} className="!absolute -top-[27px] left-1/2 -translate-x-1/2" />
-                <div className="flex flex-col items-center gap-10 pt-14">
-                  <div className={cn("grid w-full items-center gap-8", q.image && "md:grid-cols-2")}>
-                    <h2 className="text-center font-display text-[28px] font-semibold leading-9 md:text-[40px] md:leading-[48px]">
-                      {q.text || "Текст вопроса"}
-                    </h2>
-                    {q.image && <img src={q.image.src} alt="" className="aspect-[3/2] w-full rounded-3xl object-cover" />}
-                  </div>
-                  <div className="flex w-full flex-col gap-4">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {answers.map((a, i) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            "flex min-h-20 items-center justify-center rounded-[24px] border-2 p-3 text-center font-display text-xl font-semibold leading-6 transition-colors",
-                            !reveal && "border-answer-border",
-                            reveal && a.ok && "border-success bg-success text-success-foreground",
-                            reveal && !a.ok && "border-muted text-muted-foreground",
-                          )}
-                        >
-                          {a.t || "Вариант ответа"}
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => setReveal((r) => !r)}
-                      className="bg-action-gradient flex h-20 items-center justify-center rounded-[24px] p-6 font-display text-xl font-semibold text-primary-foreground hover:opacity-95"
-                    >
-                      {reveal ? "Скрыть правильный ответ" : "Показать правильный ответ"}
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <QuestionCard
+                text={q.text}
+                image={q.image?.src}
+                points={QUESTION_POINTS}
+                answers={answers.map((a) => ({ t: a.t, state: !reveal ? "idle" : a.ok ? "correct" : "dim" }))}
+                footer={<GradientButton onClick={() => setReveal((r) => !r)}>{reveal ? "Скрыть правильный ответ" : "Показать правильный ответ"}</GradientButton>}
+              />
             ) : (
               <p className="rounded-[64px] bg-card p-16 text-center text-muted-foreground">В викторине пока нет вопросов</p>
             )}
