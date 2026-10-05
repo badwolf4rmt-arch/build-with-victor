@@ -265,31 +265,23 @@ export function loadDraft(): Draft | null {
     return null;
   }
 }
-/** Saves (or updates, when `id` is given) a quiz in the library; returns the saved quiz. */
-export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: string, id?: string): Quiz {
-  const raw = localStorage.getItem(KEY);
-  const stored: Stored = raw ? JSON.parse(raw) : { folders: SEED_FOLDERS };
-  const prev = stored.custom?.find((q) => q.id === id);
-  const quiz: Quiz = { id: prev?.id ?? id ?? `ai-${Date.now()}`, title, questions: items.length, items, image, mine: true, createdAt: prev?.createdAt ?? Date.now() };
-  stored.custom = [quiz, ...(stored.custom ?? []).filter((q) => q.id !== quiz.id)];
-  stored.folders ??= SEED_FOLDERS;
-  const write = () => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(stored));
-      return true;
-    } catch {
-      return false;
-    }
+/** Saves (or updates, when `id` is given) a quiz in the shared cloud library; returns the saved quiz or throws. */
+export async function addQuizToLibrary(title: string, items: DraftQuestion[], image?: string, id?: string): Promise<Quiz> {
+  const seed = SEED_QUIZZES.find((q) => q.id === id);
+  const { data: prev } = id ? await supabase.from("quizzes").select("created_at, grade, mine").eq("id", id).maybeSingle() : { data: null };
+  const grade = prev?.grade ?? seed?.grade;
+  const quiz: Quiz = {
+    id: id ?? `ai-${Date.now()}`,
+    title,
+    questions: items.length,
+    items,
+    image,
+    ...(grade ? { grade } : {}),
+    mine: prev?.mine ?? seed?.mine ?? true,
+    createdAt: prev ? Number(prev.created_at) : (seed?.createdAt ?? Date.now()),
   };
-  if (write()) return quiz;
-  // storage full — free space from older quizzes' question images first, keeping every cover
-  stored.custom = stored.custom.map((q) => (q.id === quiz.id ? q : { ...q, ...(q.items ? { items: q.items.map(({ image: _i, ...x }) => x) } : {}) }));
-  if (write()) return quiz;
-  // then drop this quiz's question images, and only as a last resort its cover
-  quiz.items = items.map(({ image: _img, ...q }) => q);
-  if (write()) return quiz;
-  quiz.image = undefined;
-  write();
+  const { error } = await supabase.from("quizzes").upsert(quizToRow(quiz), { onConflict: "id" });
+  if (error) throw new Error(error.message);
   return quiz;
 }
 
