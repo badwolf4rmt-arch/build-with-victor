@@ -11,7 +11,7 @@ export function ScoreStar({ className }: { className?: string }) {
 /** Golden plate with the question's points, sits on top of the question card. */
 export function ScorePlate({ points, className }: { points: number; className?: string }) {
   return (
-    <div className={className} style={{ width: 192, height: 118 }}>
+    <div className={`relative ${className ?? ""}`} style={{ width: 192, height: 118 }}>
       <svg viewBox="0 0 182.477 103.837" className="absolute inset-[10.83%_4.12%] h-auto w-[92%]" aria-hidden>
         <defs>
           <linearGradient id="sp0" x1="2.9" y1="19.6" x2="12.6" y2="18" gradientUnits="userSpaceOnUse"><stop stopColor="#FDC11D" /><stop offset="1" stopColor="#F19100" /></linearGradient>

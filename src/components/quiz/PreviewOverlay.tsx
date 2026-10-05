@@ -86,7 +86,7 @@ export function PreviewOverlay({
           <div className="flex flex-col gap-10">
             {q ? (
               <div className="relative mt-[27px] rounded-[64px] bg-card px-6 py-10 md:px-12">
-                <ScorePlate points={QUESTION_POINTS} className="absolute -top-[27px] left-1/2 -translate-x-1/2" />
+                <ScorePlate points={QUESTION_POINTS} className="!absolute -top-[27px] left-1/2 -translate-x-1/2" />
                 <div className="flex flex-col items-center gap-10 pt-14">
                   <div className={cn("grid w-full items-center gap-8", q.image && "md:grid-cols-2")}>
                     <h2 className="text-center font-display text-[28px] font-semibold leading-9 md:text-[40px] md:leading-[48px]">
