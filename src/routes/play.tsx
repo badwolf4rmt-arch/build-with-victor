@@ -142,7 +142,7 @@ function PlayPage() {
           >
             {!c.done && (
               <>
-                <CardOrnament className="absolute inset-0 h-full w-full" />
+                <CardOrnament className="absolute left-1/2 top-1/2 h-[422px] w-[450px] max-w-none -translate-x-1/2 -translate-y-1/2" />
                 <span className="relative font-display text-[56px] font-semibold leading-none text-primary-foreground lg:text-[80px]">{c.n}</span>
               </>
             )}
