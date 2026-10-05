@@ -1,12 +1,13 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronDown, FileText, Loader2, Minus, Paperclip, Plus, Settings, Sparkles, X } from "lucide-react";
+import { ChevronDown, FileText, Loader2, Minus, Plus, Settings, Sparkles, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateQuiz } from "@/lib/quiz-ai.functions";
 import { MATERIAL_ACCEPT, readMaterialFile, type Material } from "@/lib/material-file";
 import { saveDraft } from "@/lib/quiz-store";
+import { cn } from "@/lib/utils";
 import { Modal } from "./Modal";
 import { SubjectCombobox } from "./SubjectCombobox";
 
@@ -14,9 +15,10 @@ const MAX_Q = 20;
 const MAX_TEXT = 20000;
 type Picked = { name: string; data: Material } | null;
 
-function FilePick({ value, onChange, label }: { value: Picked; onChange: (p: Picked) => void; label: string }) {
+function FilePick({ value, onChange }: { value: Picked; onChange: (p: Picked) => void }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [drag, setDrag] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   async function pick(f?: File) {
     if (!f) return;
@@ -31,28 +33,52 @@ function FilePick({ value, onChange, label }: { value: Picked; onChange: (p: Pic
       if (ref.current) ref.current.value = "";
     }
   }
+
+  if (value) {
+    return (
+      <div className="flex h-12 items-center gap-2 rounded-xl border border-border bg-secondary px-3 text-sm">
+        <FileText className="size-5 shrink-0 text-primary" />
+        <span className="flex-1 truncate">{value.name}</span>
+        <button aria-label="Убрать файл" onClick={() => onChange(null)}>
+          <X className="size-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div>
       <input ref={ref} type="file" accept={MATERIAL_ACCEPT} className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
-      {value ? (
-        <div className="flex h-12 items-center gap-2 rounded-xl border border-border px-3 text-sm">
-          <FileText className="size-5 shrink-0 text-primary" />
-          <span className="flex-1 truncate">{value.name}</span>
-          <button aria-label="Убрать файл" onClick={() => onChange(null)}>
-            <X className="size-4" />
-          </button>
-        </div>
-      ) : (
+      <div
+        onClick={() => !busy && ref.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDrag(true);
+        }}
+        onDragLeave={() => setDrag(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDrag(false);
+          pick(e.dataTransfer.files?.[0]);
+        }}
+        className={cn(
+          "flex min-h-[190px] w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-3xl border-2 border-dashed bg-secondary px-6 py-8 text-center transition-colors",
+          drag ? "border-primary bg-info" : "border-placeholder-dashed",
+        )}
+      >
+        <p className="font-display text-lg font-semibold">Перетащите сюда файл или выберите на компьютере</p>
+        <p className="text-sm text-muted-foreground">файл не должен весить больше 10 МБ.</p>
+        <p className="text-sm text-muted-foreground">Формат — DOCX, PDF, TXT, JPG, PNG</p>
         <button
-          onClick={() => ref.current?.click()}
+          type="button"
           disabled={busy}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm font-semibold hover:border-primary disabled:opacity-50"
+          className="mt-4 flex h-11 items-center gap-2 rounded-xl bg-info px-6 text-sm font-semibold transition-colors hover:bg-muted disabled:opacity-50"
         >
-          {busy ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
-          {label}
+          {busy && <Loader2 className="size-4 animate-spin" />}
+          Выбрать файл
         </button>
-      )}
-      <p className="mt-1 text-xs text-muted-foreground">{err ?? "PDF, DOCX, TXT или фото, до 10 МБ"}</p>
+      </div>
+      {err && <p className="mt-1 text-xs text-destructive">{err}</p>}
     </div>
   );
 }
@@ -97,7 +123,12 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
         },
       });
       if (!res.ok) return setError(res.error);
-      saveDraft(res.quiz);
+      saveDraft({
+        ...res.quiz,
+        subject: subject.trim() || undefined,
+        grade: grade ? `${grade} класс` : undefined,
+        topic: topic.trim() || undefined,
+      });
       onOpenChange(false);
       navigate({ to: "/quiz/new" });
     } catch {
@@ -161,7 +192,7 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
 
               <div className="mt-5">
                 <Label title="План урока" />
-                <FilePick value={plan} onChange={setPlan} label="Загрузить план урока" />
+                <FilePick value={plan} onChange={setPlan} />
               </div>
 
               <button
@@ -192,7 +223,7 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
                       </span>
                     </div>
                     <div className="mt-2">
-                      <FilePick value={sourceFile} onChange={setSourceFile} label="Или загрузить файл с текстом" />
+                      <FilePick value={sourceFile} onChange={setSourceFile} />
                     </div>
                   </div>
 

@@ -7,6 +7,8 @@ const row = (over: Partial<Parameters<typeof mergeLibrary>[0][number]>) => ({
   items: [],
   cover_url: null,
   grade: null,
+  subject: null,
+  topic: null,
   mine: true,
   deleted: false,
   created_at: 1,
