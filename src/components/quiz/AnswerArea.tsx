@@ -132,7 +132,8 @@ export function InputAnswer({
           )}
         />
       )}
-      {reveal ? (
+      {reveal && (!onCheck || !ok) ? (
+        // Ученик ответил верно — его ответ в поле уже подсвечен зелёным, повторять его не нужно.
         <div className={cn("flex items-center justify-center rounded-2xl border-2 border-success bg-success p-3 text-center font-semibold text-success-foreground", size === "lg" ? "min-h-20 font-display text-xl" : "min-h-14 text-base")}>
           {correct}
         </div>
