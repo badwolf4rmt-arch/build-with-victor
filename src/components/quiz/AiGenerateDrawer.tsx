@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronDown, FileText, Info, Loader2, Minus, Paperclip, Plus, Settings, Sparkles, X } from "lucide-react";
+import { ChevronDown, FileText, Loader2, Minus, Paperclip, Plus, Settings, Sparkles, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateQuiz } from "@/lib/quiz-ai.functions";
@@ -80,13 +80,6 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
   const hasSource = !!text.trim() || !!sourceFile;
   const hasInput = !!topic.trim() || !!plan || hasSource;
   const canSubmit = hasInput && count >= 1 && count <= MAX_Q && !loading;
-  const mode = hasSource
-    ? "Вопросы будут строго по вашему тексту или файлу" + (plan || topic.trim() ? " с учётом темы и плана урока" : "")
-    : plan
-      ? "Вопросы будут по целям и содержанию плана урока"
-      : topic.trim()
-        ? "Вопросы будут по теме в рамках школьной программы"
-        : "Укажите тему, загрузите план урока или добавьте текст";
 
   async function submit() {
     setLoading(true);
@@ -229,10 +222,6 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
                 </>
               )}
 
-              <div className="mt-4 flex gap-3 rounded-2xl bg-info p-4">
-                <Info className="mt-0.5 size-5 shrink-0 fill-primary text-card" />
-                <p className="text-sm">{mode}</p>
-              </div>
             </div>
             <div className="flex justify-center py-3">
               <button
