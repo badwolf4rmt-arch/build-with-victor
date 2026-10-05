@@ -63,7 +63,8 @@ function Editor() {
     try {
       const res = await runCover({ data: { prompt, kind: "cover" } });
       if (res.ok) {
-        setQuiz((q) => ({ ...q, cover: res.dataUrl }));
+        const cover = await compressImage(res.dataUrl);
+        setQuiz((q) => ({ ...q, cover }));
         toast.success("Обложка создана");
       } else toast.error(res.error);
     } catch {
@@ -105,7 +106,8 @@ function Editor() {
     const s = addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id);
     setSaved(s);
     if (quiz.id !== s.id) setQuiz((q) => ({ ...q, id: s.id }));
-    toast.success("Викторина сохранена");
+    if (quiz.cover && !s.image) toast.error("Не хватило места в браузере — викторина сохранена без обложки");
+    else toast.success("Викторина сохранена");
   }
 
   return (
