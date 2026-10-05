@@ -1,3 +1,4 @@
+import { isPlayable, kindOf } from "@/lib/question-kinds";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Minus, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -16,7 +17,7 @@ export function CompleteQuizModal({ open, onOpenChange, quiz, onApply }: { open:
 
   const partial = quiz.questions.filter((q) => {
     const any = !blank(q.text) || !blank(q.correct) || q.incorrect.some((x) => !blank(x));
-    const full = !blank(q.text) && !blank(q.correct) && q.incorrect.filter((x) => !blank(x)).length >= 3;
+    const full = kindOf(q) !== "choice" ? isPlayable(q) : !blank(q.text) && !blank(q.correct) && q.incorrect.filter((x) => !blank(x)).length >= 3;
     return any && !full;
   }).length;
 
@@ -36,7 +37,7 @@ export function CompleteQuizModal({ open, onOpenChange, quiz, onApply }: { open:
       // keep everything the user typed; only fill empty fields
       const questions = quiz.questions.map((q, i) => {
         const f = res.filled.find((x) => x.index === i);
-        if (!f) return q;
+        if (!f || kindOf(q) !== "choice") return q;
         const inc = [0, 1, 2].map((k) => (blank(q.incorrect[k]) ? (f.incorrect[k] ?? "") : q.incorrect[k]!));
         return { ...q, text: blank(q.text) ? f.text : q.text, correct: blank(q.correct) ? f.correct : q.correct, incorrect: inc };
       });
