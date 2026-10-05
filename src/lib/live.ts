@@ -45,7 +45,21 @@ export function optionsFor(q: GameQuestion, index: number): string[] {
   return arr;
 }
 
-export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean }) {
+/** Team totals = sum of member scores; empty list when students play individually. */
+export function teamScores(teams: string[], players: { team: string | null; score: number }[]) {
+  return teams
+    .map((name) => {
+      const members = players.filter((p) => p.team === name);
+      return { name, score: members.reduce((s, p) => s + p.score, 0), members: members.length };
+    })
+    .sort((a, b) => b.score - a.score);
+}
+
+export function sessionTeams(s: { teams?: unknown }): string[] {
+  return Array.isArray(s.teams) ? (s.teams as string[]) : [];
+}
+
+export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean; teams: string[] }) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const { error } = await supabase.from("live_sessions").insert({
@@ -55,6 +69,7 @@ export async function createLiveSession(input: { quizId: string; title: string; 
       items: input.items as never,
       mode: input.mode,
       speed_scoring: input.speedScoring,
+      teams: input.teams as never,
     });
     if (!error) return code;
     if (error.code !== "23505") throw new Error(error.message);
@@ -102,8 +117,8 @@ export function useLiveGame(code: string) {
   return { session, players, answers, refresh };
 }
 
-export async function joinGame(code: string, name: string) {
-  const { data, error } = await supabase.from("live_players").insert({ session_code: code, name: name.trim().slice(0, 30) }).select().single();
+export async function joinGame(code: string, name: string, team: string | null = null) {
+  const { data, error } = await supabase.from("live_players").insert({ session_code: code, name: name.trim().slice(0, 30), team }).select().single();
   if (error) throw new Error(error.message);
   return data;
 }
