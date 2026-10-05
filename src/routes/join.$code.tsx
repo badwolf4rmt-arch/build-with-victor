@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { answerPoints, canReplaceAnswer, joinGame, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LiveAnswer, type LivePlayer } from "@/lib/live";
+import { answerPoints, joinGame, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LivePlayer } from "@/lib/live";
 
 export const Route = createFileRoute("/join/$code")({
   head: () => ({
@@ -100,14 +99,14 @@ function JoinPage() {
   if (!q) return shell(<p className="text-center">Ждём следующий вопрос…</p>);
   const done = myAnswers.find((a) => a.question === index);
 
-  if (session.mode === "sync" && session.state === "reveal") {
+  if (session.state === "reveal") {
     return shell(
       <>
         {header}
         <p className="py-8 text-center font-display text-2xl font-semibold">
           {!done ? "Время вышло" : done.correct ? `Верно! +${done.points}` : "Неверно"}
         </p>
-        {session.state === "reveal" && <p className="text-center text-muted-foreground">Правильный ответ: {q.correct}</p>}
+        <p className="text-center text-muted-foreground">Правильный ответ: {q.correct}</p>
       </>,
     );
   }
@@ -125,10 +124,9 @@ function JoinPage() {
         speed={session.speed_scoring}
         startedAt={session.mode === "sync" ? (session.question_started_at ?? Date.now()) : null}
         showFeedback={session.mode === "self"}
-        initialAnswer={done}
-        allowChanges={canReplaceAnswer(session.state, session.mode === "self" && !!done)}
+        initialAnswer={done?.answer}
       />
-    </>,
+    </>
   );
 }
 
@@ -141,51 +139,55 @@ function Question(props: {
   speed: boolean;
   startedAt: number | null;
   showFeedback: boolean;
-  initialAnswer?: LiveAnswer;
-  allowChanges: boolean;
+  initialAnswer?: string;
 }) {
   const { q, index } = props;
   const options = useMemo(() => optionsFor(q, index), [q, index]);
   const shownAt = useRef(Date.now());
-  const [picked, setPicked] = useState<string | null>(props.initialAnswer?.answer ?? null);
-  const [points, setPoints] = useState(props.initialAnswer?.points ?? 0);
+  const [picked, setPicked] = useState<string | null>(props.initialAnswer ?? null);
+  const [points, setPoints] = useState(0);
+  const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (!props.initialAnswer) return;
-    setPicked(props.initialAnswer.answer);
-    setPoints(props.initialAnswer.points);
-  }, [props.initialAnswer]);
-
-  const pick = (o: string) => {
-    if (picked && (!props.allowChanges || props.showFeedback)) return;
+  const pick = async (o: string) => {
+    if (busy || (picked && props.showFeedback)) return;
     setPicked(o);
+    setBusy(true);
     const elapsed = Date.now() - (props.startedAt ?? shownAt.current);
     const correct = o === q.correct;
     const pts = answerPoints(correct, props.speed, elapsed);
     setPoints(pts);
+    
     const send = () => void submitAnswer({ code: props.code, player: props.player, question: index, answer: o, correct, points: pts });
-    // Self-paced: show feedback briefly, then the saved answer moves the student to the next question.
-    if (props.showFeedback) setTimeout(send, 1500);
-    else send();
+    
+    if (props.showFeedback) {
+      setTimeout(() => {
+        send();
+        setBusy(false);
+      }, 1500);
+    } else {
+      await submitAnswer({ code: props.code, player: props.player, question: index, answer: o, correct, points: pts });
+      setBusy(false);
+    }
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">Вопрос {index + 1} из {props.total}{props.startedAt ? ` · ${TIME_LIMIT} с` : ""}</p>
+      <p className="text-sm text-muted-foreground flex justify-between">
+        <span>Вопрос {index + 1} из {props.total}{props.startedAt ? ` · ${TIME_LIMIT} с` : ""}</span>
+        {picked && !props.showFeedback && <span className="text-primary font-semibold">Ответ сохранён</span>}
+      </p>
       <p className="font-display text-xl font-semibold leading-7">{q.text}</p>
       {q.image && <img src={q.image} alt="" className="aspect-[3/2] w-full rounded-2xl object-cover" />}
       <div className="flex flex-col gap-3">
         {options.map((o) => {
           const state = !picked || !props.showFeedback ? (picked === o ? "picked" : "idle") : o === q.correct ? "correct" : o === picked ? "wrong" : "dim";
           return (
-            <Button
+            <button
               key={o}
-              type="button"
-              variant="outline"
-              disabled={!!picked && (!props.allowChanges || props.showFeedback)}
+              disabled={busy || (!!picked && props.showFeedback)}
               onClick={() => pick(o)}
               className={cn(
-                "h-auto min-h-14 w-full justify-start whitespace-normal rounded-2xl border-2 p-3 text-left text-base font-semibold shadow-none transition-colors",
+                "min-h-14 rounded-2xl border-2 p-3 text-left text-base font-semibold transition-colors",
                 state === "idle" && "border-answer-border hover:bg-info",
                 state === "picked" && "border-primary bg-primary text-primary-foreground",
                 state === "correct" && "border-success bg-success text-success-foreground",
@@ -194,7 +196,7 @@ function Question(props: {
               )}
             >
               {o}
-            </Button>
+            </button>
           );
         })}
       </div>
