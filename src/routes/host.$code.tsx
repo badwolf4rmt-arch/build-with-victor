@@ -159,7 +159,7 @@ function SyncQuestion(props: {
       <div className="flex items-center justify-between gap-4 text-card">
         <p className="font-display text-2xl font-semibold">Вопрос {index + 1} из {props.total}</p>
         <p className="font-display text-2xl font-semibold">
-          {reveal ? "Время вышло" : `⏱ ${props.left} с`} · ответили {props.answered}/{props.players.length}
+          {reveal ? "Правильный ответ" : `⏱ ${props.left} с`} · ответили {props.answered}/{props.players.length}
         </p>
       </div>
       <FitToScreen className="flex-1">
