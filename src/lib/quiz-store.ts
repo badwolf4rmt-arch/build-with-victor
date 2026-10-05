@@ -219,7 +219,10 @@ export function useQuizStore() {
       }));
       void (async () => {
         const { error } = await supabase.from("quizzes").upsert({ id, deleted: true }, { onConflict: "id" });
-        if (error) return fail();
+        if (error) {
+          fail();
+          return;
+        }
         for (const f of affected) {
           await supabase.from("folders").update({ quiz_ids: f.quizIds.filter((q) => q !== id) }).eq("id", f.id);
         }
