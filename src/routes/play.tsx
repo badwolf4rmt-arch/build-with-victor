@@ -163,7 +163,7 @@ function PlayPage() {
         </div>
       )}
 
-      <Modal open={!!bonus} onOpenChange={() => {}} title={bonus ? `Бонус: ${bonus.name}` : ""} description={bonus?.text}>
+      <Modal open={!!bonus} onOpenChange={() => {}} title={bonus ? `Бонус: ${bonus.name}` : ""} description={bonus?.text ?? ""}>
         {bonus && (
           <div className="mt-6 flex flex-col items-center gap-6">
             <span className="text-7xl">{bonus.icon}</span>

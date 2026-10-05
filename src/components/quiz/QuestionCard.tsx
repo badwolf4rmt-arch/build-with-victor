@@ -14,10 +14,10 @@ export function QuestionCard({
   footer,
 }: {
   text: string;
-  image?: string;
+  image?: string | undefined;
   points: number;
   answers: { t: string; state: AnswerState }[];
-  onAnswer?: (i: number) => void;
+  onAnswer?: ((i: number) => void) | undefined;
   footer?: ReactNode;
 }) {
   return (
