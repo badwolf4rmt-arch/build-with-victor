@@ -6,7 +6,9 @@ import { useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateQuiz } from "@/lib/quiz-ai.functions";
 import { MATERIAL_ACCEPT, readMaterialFile, type Material } from "@/lib/material-file";
-import { saveDraft } from "@/lib/quiz-store";
+import { saveDraft, type DraftQuestion } from "@/lib/quiz-store";
+import { illustrateQuestions } from "@/lib/quiz-illustrate.functions";
+import { compressImage } from "@/lib/image-compress";
 import { cn } from "@/lib/utils";
 import { Modal } from "./Modal";
 import { SubjectCombobox } from "./SubjectCombobox";
@@ -93,6 +95,7 @@ const Label = ({ title, hint }: { title: string; hint?: string }) => (
 export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const navigate = useNavigate();
   const run = useServerFn(generateQuiz);
+  const illustrate = useServerFn(illustrateQuestions);
   const [subject, setSubject] = useState<string>("");
   const [grade, setGrade] = useState<string>("");
   const [topic, setTopic] = useState("");
@@ -123,8 +126,31 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
         },
       });
       if (!res.ok) return setError(res.error);
+      let questions: DraftQuestion[] = res.quiz.questions;
+      try {
+        const ill = await illustrate({
+          data: {
+            subject: subject.trim() || undefined,
+            grade: grade ? Number(grade) : undefined,
+            topic: topic.trim() || undefined,
+            questions: questions.map((q) => ({ text: q.text, correct: q.correct })),
+          },
+        });
+        if (ill.ok) {
+          const imgs = await Promise.all(ill.images.map(async (i) => ({ index: i.index, src: await compressImage(i.dataUrl, 900, 0.8) })));
+          questions = questions.map((q, idx) => {
+            const im = imgs.find((x) => x.index === idx);
+            if (!im) return q;
+            const size = Math.round(((im.src.length - im.src.indexOf(",") - 1) * 3) / 4);
+            return { ...q, image: { src: im.src, name: "иллюстрация", type: "JPG", size } };
+          });
+        }
+      } catch {
+        // картинки необязательны — викторина остаётся без них
+      }
       saveDraft({
         ...res.quiz,
+        questions,
         subject: subject.trim() || undefined,
         grade: grade ? `${grade} класс` : undefined,
         topic: topic.trim() || undefined,
