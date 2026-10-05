@@ -81,17 +81,35 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
   const [avatars, setAvatars] = useState(AVATARS.slice(0, 5));
   const [picker, setPicker] = useState<number | null>(null);
   const [bonuses, setBonuses] = useState<BonusId[]>([]);
+  const [way, setWay] = useState<"board" | "qr">("board");
+  const [advanced, setAdvanced] = useState(false);
+  const [liveMode, setLiveMode] = useState<LiveMode>("sync");
+  const [speed, setSpeed] = useState(true);
+  const [creating, setCreating] = useState(false);
   const all = bonuses.length === BONUSES.length;
   const singleTeam = count === 1;
 
   const toggle = (id: BonusId, on: boolean) => setBonuses((b) => (on ? [...b, id] : b.filter((x) => x !== id)));
+  const gameItems = () => getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src }));
 
-  const start = () => {
+  const start = async () => {
+    if (way === "qr") {
+      setCreating(true);
+      try {
+        const code = await createLiveSession({ quizId: quiz.id, title: quiz.title, items: gameItems(), mode: liveMode, speedScoring: speed });
+        void navigate({ to: "/host/$code", params: { code } });
+      } catch {
+        toast.error("Не удалось создать игру. Проверьте интернет и попробуйте ещё раз.");
+      } finally {
+        setCreating(false);
+      }
+      return;
+    }
     saveSetup({
       quizId: quiz.id,
       title: quiz.title,
       questions: getQuizItems(quiz).length,
-      items: getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src })),
+      items: gameItems(),
       teams: Array.from({ length: count }, (_, i) => ({ name: names[i]!.trim() || `Команда ${i + 1}`, avatar: avatars[i]!, score: 0 })),
       bonuses: singleTeam ? [] : bonuses,
     });
@@ -110,7 +128,48 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
           <DialogPrimitive.Description className="sr-only">Настройка команд и бонусов</DialogPrimitive.Description>
 
           <div className="flex-1 overflow-y-auto px-8 pb-6 pt-8">
-            <div className="flex items-start justify-between gap-5">
+            <p className="text-xl font-semibold leading-6">Как проводим?</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {([["board", "На доске командами", "Команды по очереди выбирают карточки"], ["qr", "На устройствах учеников", "Ученики сканируют QR-код и отвечают с телефонов"]] as const).map(([id, t, d]) => (
+                <button key={id} onClick={() => setWay(id)} className={cn("rounded-2xl border-2 p-4 text-left", way === id ? "border-primary bg-accent" : "border-border hover:bg-secondary")}>
+                  <p className="text-base font-semibold">{t}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{d}</p>
+                </button>
+              ))}
+            </div>
+
+            {way === "qr" ? (
+              <div className="mt-8">
+                <button onClick={() => setAdvanced((a) => !a)} className="flex items-center gap-2 text-sm font-semibold text-primary">
+                  <Settings className="size-4" /> {advanced ? "Скрыть расширенные настройки" : "Показать расширенные настройки"}
+                </button>
+                {advanced && (
+                  <div className="mt-5 flex flex-col gap-6">
+                    <div>
+                      <p className="text-base font-semibold">Темп</p>
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        {([["sync", "Все вместе", `Вопрос на экране, ${TIME_LIMIT} секунд на ответ`], ["self", "Каждый в своём темпе", "Ученик проходит вопросы сам"]] as const).map(([id, t, d]) => (
+                          <button key={id} onClick={() => setLiveMode(id)} className={cn("rounded-2xl border-2 p-4 text-left", liveMode === id ? "border-primary bg-accent" : "border-border hover:bg-secondary")}>
+                            <p className="text-sm font-semibold">{t}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">{d}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <label className="flex items-center justify-between gap-6">
+                      <span>
+                        <span className="block text-base font-semibold">Учитывать скорость ответа</span>
+                        <span className="block text-sm text-muted-foreground">Кто ответил быстрее, получает больше баллов</span>
+                      </span>
+                      <Switch checked={speed} onCheckedChange={setSpeed} />
+                    </label>
+                  </div>
+                )}
+              </div>
+            ) : (
+            <>
+            <div className="mt-10 flex items-start justify-between gap-5">
+
               <div>
                 <p className="text-xl font-semibold leading-6">Сколько команд участвует?</p>
                 <p className="mt-2 text-sm text-muted-foreground">Не забудьте придумать им названия</p>
