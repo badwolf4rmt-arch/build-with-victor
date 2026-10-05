@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { FileText, Info, Loader2, Minus, Paperclip, Plus, Sparkles, X } from "lucide-react";
+import { ChevronDown, FileText, Info, Loader2, Minus, Paperclip, Plus, Settings, Sparkles, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateQuiz } from "@/lib/quiz-ai.functions";
@@ -72,7 +72,8 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
   const [plan, setPlan] = useState<Picked>(null);
   const [text, setText] = useState("");
   const [sourceFile, setSourceFile] = useState<Picked>(null);
-  const [count, setCount] = useState(5);
+  const [advanced, setAdvanced] = useState(false);
+  const [count, setCount] = useState(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -170,48 +171,63 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
                 <FilePick value={plan} onChange={setPlan} label="Загрузить план урока" />
               </div>
 
-              <div className="mt-5">
-                <Label title="Учебный текст" hint="Необязательно — тогда вопросы будут строго по нему" />
-                <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  maxLength={30000}
-                  placeholder="Вставьте текст из учебника, статьи или презентации"
-                  className="h-40 w-full resize-none rounded-2xl border border-border p-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
-                />
-                <div className="mt-2">
-                  <FilePick value={sourceFile} onChange={setSourceFile} label="Или загрузить файл с текстом" />
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setAdvanced((a) => !a)}
+                aria-expanded={advanced}
+                className="mt-5 flex items-center gap-2 text-sm font-semibold text-primary transition-opacity hover:opacity-80"
+              >
+                <Settings className="size-5" strokeWidth={2.2} />
+                {advanced ? "Скрыть расширенные настройки" : "Показать расширенные настройки"}
+                <ChevronDown className={`size-4 transition-transform ${advanced ? "rotate-180" : ""}`} />
+              </button>
 
-              <div className="mt-5 flex items-center justify-between gap-5">
-                <Label title="Количество вопросов" hint="Не больше 20 вопросов" />
-                <div className="flex h-12 w-[132px] items-center justify-between rounded-xl border border-border px-1">
-                  <button
-                    aria-label="Меньше"
-                    onClick={() => setCount((c) => Math.max(1, c - 1))}
-                    className="flex size-10 items-center justify-center rounded-lg bg-secondary disabled:opacity-40"
-                    disabled={count <= 1}
-                  >
-                    <Minus className="size-4" />
-                  </button>
-                  <input
-                    value={count}
-                    inputMode="numeric"
-                    onChange={(e) => setCount(Math.min(MAX_Q, Number(e.target.value.replace(/\D/g, "")) || 0))}
-                    className="w-8 bg-transparent text-center text-sm outline-none"
-                    aria-label="Количество вопросов"
-                  />
-                  <button
-                    aria-label="Больше"
-                    onClick={() => setCount((c) => Math.min(MAX_Q, c + 1))}
-                    className="flex size-10 items-center justify-center rounded-lg bg-secondary disabled:opacity-40"
-                    disabled={count >= MAX_Q}
-                  >
-                    <Plus className="size-4" />
-                  </button>
-                </div>
-              </div>
+              {advanced && (
+                <>
+                  <div className="mt-5">
+                    <Label title="Учебный текст" hint="Необязательно — тогда вопросы будут строго по нему" />
+                    <textarea
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      maxLength={30000}
+                      placeholder="Вставьте текст из учебника, статьи или презентации"
+                      className="h-40 w-full resize-none rounded-2xl border border-border p-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+                    />
+                    <div className="mt-2">
+                      <FilePick value={sourceFile} onChange={setSourceFile} label="Или загрузить файл с текстом" />
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex items-center justify-between gap-5">
+                    <Label title="Количество вопросов" hint="Не больше 20 вопросов" />
+                    <div className="flex h-12 w-[132px] items-center justify-between rounded-xl border border-border px-1">
+                      <button
+                        aria-label="Меньше"
+                        onClick={() => setCount((c) => Math.max(1, c - 1))}
+                        className="flex size-10 items-center justify-center rounded-lg bg-secondary disabled:opacity-40"
+                        disabled={count <= 1}
+                      >
+                        <Minus className="size-4" />
+                      </button>
+                      <input
+                        value={count}
+                        inputMode="numeric"
+                        onChange={(e) => setCount(Math.min(MAX_Q, Number(e.target.value.replace(/\D/g, "")) || 0))}
+                        className="w-8 bg-transparent text-center text-sm outline-none"
+                        aria-label="Количество вопросов"
+                      />
+                      <button
+                        aria-label="Больше"
+                        onClick={() => setCount((c) => Math.min(MAX_Q, c + 1))}
+                        className="flex size-10 items-center justify-center rounded-lg bg-secondary disabled:opacity-40"
+                        disabled={count >= MAX_Q}
+                      >
+                        <Plus className="size-4" />
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="mt-4 flex gap-3 rounded-2xl bg-info p-4">
                 <Info className="mt-0.5 size-5 shrink-0 fill-primary text-card" />
