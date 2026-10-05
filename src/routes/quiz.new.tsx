@@ -13,7 +13,9 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { CompleteQuizModal } from "@/components/quiz/CompleteQuizModal";
 import { PreviewOverlay } from "@/components/quiz/PreviewOverlay";
-import { addQuizToLibrary, loadDraft, saveDraft, type Draft, type Quiz } from "@/lib/quiz-store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SubjectCombobox } from "@/components/quiz/SubjectCombobox";
+import { addQuizToLibrary, gradeNumber, loadDraft, saveDraft, type Draft, type Quiz } from "@/lib/quiz-store";
 
 export const Route = createFileRoute("/quiz/new")({
   head: () => ({
@@ -107,7 +109,11 @@ function Editor() {
     }
     setSaving(true);
     try {
-      const s = await addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id ?? quiz.id);
+      const s = await addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id ?? quiz.id, {
+        subject: quiz.subject ?? "",
+        grade: quiz.grade,
+        topic: quiz.topic ?? "",
+      });
       setSaved(s);
       if (quiz.id !== s.id) setQuiz((q) => ({ ...q, id: s.id }));
       toast.success("Викторина сохранена — изменения видны всем");
@@ -175,6 +181,38 @@ function Editor() {
               aria-label="Название викторины"
               className="w-full bg-transparent font-display text-[32px] font-semibold leading-10 outline-none"
             />
+            <div className="mt-6 grid grid-cols-[1fr_160px] gap-4">
+              <div>
+                <p className="mb-2 font-display text-lg font-semibold">Предмет</p>
+                <SubjectCombobox value={quiz.subject ?? ""} onChange={(v) => setQuiz({ ...quiz, subject: v })} />
+              </div>
+              <div>
+                <p className="mb-2 font-display text-lg font-semibold">Класс</p>
+                <Select value={gradeNumber(quiz.grade)} onValueChange={(g) => setQuiz({ ...quiz, grade: `${g} класс` })}>
+                  <SelectTrigger className="h-12 rounded-xl">
+                    <SelectValue placeholder="Класс" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 11 }, (_, i) => String(i + 1)).map((g) => (
+                      <SelectItem key={g} value={g}>
+                        {g} класс
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="mt-5">
+              <p className="mb-2 font-display text-lg font-semibold">Тема</p>
+              <input
+                value={quiz.topic ?? ""}
+                onChange={(e) => setQuiz({ ...quiz, topic: e.target.value })}
+                maxLength={200}
+                placeholder="Например: Фотосинтез"
+                aria-label="Тема викторины"
+                className="h-12 w-full rounded-xl border border-border px-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+              />
+            </div>
           </div>
         </section>
 

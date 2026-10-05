@@ -108,7 +108,7 @@ export function SubjectCombobox({
             <X className="size-4 text-muted-foreground" />
           </button>
         )}
-        <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />
+        {!value && <ChevronDown className={`size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`} />}
       </div>
 
       {open && (

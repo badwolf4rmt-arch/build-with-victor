@@ -13,6 +13,8 @@ export type Quiz = {
   questions: number;
   image?: string | undefined; // undefined → gradient cover
   grade?: string;
+  subject?: string;
+  topic?: string;
   mine: boolean;
   createdAt: number;
   items?: DraftQuestion[];
@@ -98,6 +100,8 @@ function rowToQuiz(r: QuizRow, seed?: Quiz): Quiz {
     items,
     image: r.cover_url ?? undefined,
     ...(r.grade ? { grade: r.grade } : seed?.grade ? { grade: seed.grade } : {}),
+    ...(r.subject ? { subject: r.subject } : seed?.subject ? { subject: seed.subject } : {}),
+    ...(r.topic ? { topic: r.topic } : seed?.topic ? { topic: seed.topic } : {}),
     mine: r.mine,
     createdAt: Number(r.created_at),
   };
@@ -123,6 +127,8 @@ function quizToRow(q: Quiz) {
     items: (q.items ?? []) as unknown as Json,
     cover_url: q.image ?? null,
     grade: q.grade ?? null,
+    subject: q.subject ?? null,
+    topic: q.topic ?? null,
     mine: q.mine,
     created_at: q.createdAt,
     deleted: false,
@@ -244,7 +250,15 @@ export function pluralQuestions(n: number) {
 
 export type QuestionImage = { src: string; name: string; type: string; size: number };
 export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined };
-export type Draft = { title: string; questions: DraftQuestion[]; cover?: string | undefined; id?: string | undefined };
+export type Draft = {
+  title: string;
+  questions: DraftQuestion[];
+  cover?: string | undefined;
+  id?: string | undefined;
+  subject?: string | undefined;
+  grade?: string | undefined;
+  topic?: string | undefined;
+};
 const DRAFT_KEY = "quiz-builder-draft";
 export function clearDraft() {
   try {
@@ -268,11 +282,31 @@ export function loadDraft(): Draft | null {
     return null;
   }
 }
+/** Class number taken from a stored label like "5 класс" or "9–11 класс"; empty when there is none. */
+export function gradeNumber(grade?: string): string {
+  return grade?.match(/^\d+/)?.[0] ?? "";
+}
+
+export type QuizMeta = { subject?: string | undefined; grade?: string | undefined; topic?: string | undefined };
+
 /** Saves (or updates, when `id` is given) a quiz in the shared cloud library; returns the saved quiz or throws. */
-export async function addQuizToLibrary(title: string, items: DraftQuestion[], image?: string, id?: string): Promise<Quiz> {
+export async function addQuizToLibrary(
+  title: string,
+  items: DraftQuestion[],
+  image?: string,
+  id?: string,
+  meta?: QuizMeta,
+): Promise<Quiz> {
   const seed = SEED_QUIZZES.find((q) => q.id === id);
-  const { data: prev } = id ? await supabase.from("quizzes").select("created_at, grade, mine").eq("id", id).maybeSingle() : { data: null };
-  const grade = prev?.grade ?? seed?.grade;
+  const { data: prev } = id
+    ? await supabase.from("quizzes").select("created_at, grade, mine, subject, topic").eq("id", id).maybeSingle()
+    : { data: null };
+  // A field the editor sent wins (an empty one clears it); otherwise keep what the cloud or the demo already had.
+  const keep = (value: string | undefined, ...fallbacks: Array<string | null | undefined>) =>
+    value !== undefined ? value || undefined : fallbacks.find((f) => !!f) ?? undefined;
+  const grade = keep(meta?.grade, prev?.grade, seed?.grade);
+  const subject = keep(meta?.subject, prev?.subject, seed?.subject);
+  const topic = keep(meta?.topic, prev?.topic, seed?.topic);
   const quiz: Quiz = {
     id: id ?? `ai-${Date.now()}`,
     title,
@@ -280,6 +314,8 @@ export async function addQuizToLibrary(title: string, items: DraftQuestion[], im
     items,
     image,
     ...(grade ? { grade } : {}),
+    ...(subject ? { subject } : {}),
+    ...(topic ? { topic } : {}),
     mine: prev?.mine ?? seed?.mine ?? true,
     createdAt: prev ? Number(prev.created_at) : (seed?.createdAt ?? Date.now()),
   };
