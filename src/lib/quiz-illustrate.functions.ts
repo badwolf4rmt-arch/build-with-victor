@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { buildImagePrompt, illustrationCount } from "./question-illustration";
+import { buildImagePrompt, illustrationGroups } from "./question-illustration";
 
 const BRIEF_MODEL = "google/gemini-2.5-flash";
 const IMAGE_MODEL = "google/gemini-3.1-flash-image";
@@ -24,7 +24,7 @@ const BriefSchema = z.object({
 
 // Этап 2 из академических требований, адаптированный: на вход вместо задания — вопрос викторины.
 const BRIEF_SYSTEM = `Ты арт-директор школьных учебных материалов. По вопросам викторины составляешь бриф (imageBrief) и художественный запрос для иллюстрации.
-Шаг 1. Из списка вопросов выбери ровно K вопросов, которым иллюстрация действительно поможет: есть конкретный предмет, место, процесс, историческая обстановка или персонаж, которые можно показать. Не выбирай абстрактные вопросы (определения, вычисления, грамматика), если есть более наглядные.
+Шаг 1. Вход содержит группы индексов. Выбери ровно по одному вопросу из КАЖДОЙ группы — самому наглядному внутри неё. Нельзя пропускать группу или выбирать два вопроса из одной группы. Так иллюстрации распределяются равномерно по всей викторине.
 Шаг 2. Для каждого выбранного вопроса составь бриф. Правила:
 - Иллюстрация вызывает интерес и помогает понять, о чём вопрос, но НИКОГДА не показывает и не подсказывает правильный ответ и не делает очевидным выбор между вариантами.
 - Одна понятная сцена, один главный объект, без перегруженности; соответствие возрасту класса; достоверность (историческая, научная, бытовая).
@@ -38,6 +38,23 @@ const BRIEF_SYSTEM = `Ты арт-директор школьных учебны
 {"items":[{"index":number,"imageType":string,"peoplePolicy":string,"mainScene":string,"mainSubject":string,"location":string|null,"atmosphere":string,"mustShow":[string],"mustNotShow":[string],"imageRequest":string}]}`;
 
 export type IllustrateResult = { ok: true; images: { index: number; dataUrl: string }[] } | { ok: false; error: string };
+
+type Brief = z.infer<typeof BriefSchema>["items"][number];
+
+function fallbackBrief(index: number, question: string): Brief {
+  return {
+    index,
+    imageType: "metaphor_scene",
+    peoplePolicy: "no_people",
+    mainScene: `Нейтральная учебная сцена, связанная с темой вопроса: ${question}`,
+    mainSubject: "наглядный образ темы вопроса без изображения ответа",
+    location: "не важно",
+    atmosphere: "тёплая, солнечная, спокойная editorial-атмосфера",
+    mustShow: ["один ясный образ темы", "спокойная учебная композиция"],
+    mustNotShow: ["правильный ответ", "текст", "буквы", "цифры", "подсказки к вариантам ответа"],
+    imageRequest: `Create a neutral educational scene inspired by this question: ${question}. Show the general topic only, without depicting or suggesting the answer. Use one clear central subject and a calm uncluttered composition.`,
+  };
+}
 
 async function drawImage(prompt: string, apiKey: string): Promise<string | null> {
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -66,9 +83,9 @@ export const illustrateQuestions = createServerFn({ method: "POST" })
     const apiKey = process.env["OPENROUTER_API_KEY"];
     if (!apiKey) return { ok: false, error: "ИИ не настроен" };
     const { generateText } = await import("./ai-gateway.server");
-    const k = illustrationCount(data.questions.length);
+    const groups = illustrationGroups(data.questions.length);
     const prompt = [
-      `K = ${k}`,
+      `Группы индексов (выбери ровно один индекс из каждой): ${groups.map((g) => `[${g.start}–${g.end}]`).join(", ")}`,
       data.subject && `Предмет: ${data.subject}`,
       data.grade && `Класс: ${data.grade}`,
       data.topic && `Тема: ${data.topic}`,
@@ -81,9 +98,13 @@ export const illustrateQuestions = createServerFn({ method: "POST" })
       const parsed = BriefSchema.safeParse(JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1)));
       if (!parsed.success) return { ok: false, error: "Не удалось подготовить описания картинок" };
       const seen = new Set<number>();
-      const briefs = parsed.data.items
-        .filter((b) => b.index >= 0 && b.index < data.questions.length && !seen.has(b.index) && seen.add(b.index))
-        .slice(0, k);
+      const validBriefs = parsed.data.items.filter(
+        (b) => b.index >= 0 && b.index < data.questions.length && !seen.has(b.index) && seen.add(b.index),
+      );
+      const briefs = groups.map((group) => {
+        const selected = validBriefs.find((brief) => brief.index >= group.start && brief.index <= group.end);
+        return selected ?? fallbackBrief(group.fallbackIndex, data.questions[group.fallbackIndex]?.text ?? "Школьный вопрос");
+      });
       const images = await Promise.all(
         briefs.map(async (b) => ({ index: b.index, dataUrl: await drawImage(buildImagePrompt(b), apiKey) })),
       );

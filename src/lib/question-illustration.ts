@@ -2,10 +2,22 @@
 
 export const ILLUSTRATION_SHARE = 0.3;
 
-/** How many questions of a quiz get an AI illustration: ~30%, at least one. */
+/** How many questions get an illustration: at least one in every three. */
 export function illustrationCount(total: number): number {
   if (total <= 0) return 0;
-  return Math.max(1, Math.round(total * ILLUSTRATION_SHARE));
+  return Math.ceil(total / 3);
+}
+
+export type IllustrationGroup = { start: number; end: number; fallbackIndex: number };
+
+/** Consecutive groups keep illustrations evenly spread through the quiz. */
+export function illustrationGroups(total: number): IllustrationGroup[] {
+  if (total <= 0) return [];
+  return Array.from({ length: illustrationCount(total) }, (_, group) => {
+    const start = group * 3;
+    const end = Math.min(start + 2, total - 1);
+    return { start, end, fallbackIndex: Math.floor((start + end) / 2) };
+  });
 }
 
 export const ILLUSTRATION_STYLE = `A handcrafted digital editorial illustration with a contemporary mid-century-inspired aesthetic, combining flat vector-like shapes with rich painterly texture. Warm, sunlit color grading featuring a harmonious palette of coral, peach, terracotta, apricot, soft cream, turquoise, soft lavender, teal, cobalt blue, emerald, mustard yellow, olive green, and subtle magenta accents. Soft yet saturated colors with gentle tonal transitions and balanced complementary contrasts.
