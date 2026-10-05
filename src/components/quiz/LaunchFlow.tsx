@@ -7,12 +7,25 @@ import { cn } from "@/lib/utils";
 import { getQuizItems, type Quiz } from "@/lib/quiz-store";
 import { AVATARS, BONUSES, HIDE_RULES_KEY, saveSetup, type BonusId } from "@/lib/game";
 import classroom from "@/assets/rules-classroom.jpg";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Modal } from "./Modal";
 
 export function LaunchFlow({ quiz, open, onOpenChange }: { quiz: Quiz; open: boolean; onOpenChange: (o: boolean) => void }) {
   const [step, setStep] = useState<"rules" | "setup">("rules");
+  const isPhone = useIsMobile();
   useEffect(() => {
     if (open) setStep(localStorage.getItem(HIDE_RULES_KEY) ? "setup" : "rules");
   }, [open]);
+
+  // Figma: «На телефоне запуск недоступен» — the game board needs a computer, tablet or classroom screen.
+  if (isPhone)
+    return (
+      <Modal open={open} onOpenChange={onOpenChange} title="Запуск недоступен на телефоне" description="Откройте викторину на компьютере, планшете или интерактивной доске, чтобы провести игру.">
+        <button onClick={() => onOpenChange(false)} className="mt-6 h-12 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground">
+          Понятно
+        </button>
+      </Modal>
+    );
 
   return step === "rules" ? (
     <RulesModal
