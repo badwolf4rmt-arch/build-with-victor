@@ -319,7 +319,7 @@ function Editor() {
         cropTitle="Установка обложки"
         cropDescription="Выберите область, которая будет видна на обложке"
         aspect={1278 / 340}
-        onDone={(img) => setQuiz((q) => ({ ...q, cover: img.src }))}
+        onDone={(img) => void compressImage(img.src, 1280).then((cover) => setQuiz((q) => ({ ...q, cover })))}
       />
       <AddImageFlow
         open={imageFor !== null}
