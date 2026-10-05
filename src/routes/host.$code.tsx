@@ -22,6 +22,13 @@ export const Route = createFileRoute("/host/$code")({
   component: HostPage,
 });
 
+/** The editor preview asks for a Lovable login, so students always get the public published address. */
+const PUBLISHED_ORIGIN = "https://build-with-victor.lovable.app";
+function publicOrigin() {
+  const h = window.location.hostname;
+  return h.includes("preview") || h.endsWith("lovableproject.com") || h === "localhost" ? PUBLISHED_ORIGIN : window.location.origin;
+}
+
 function useNow(active: boolean) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -36,7 +43,7 @@ function HostPage() {
   const { code } = Route.useParams();
   const { session, players, answers } = useLiveGame(code);
   const [joinUrl, setJoinUrl] = useState("");
-  useEffect(() => setJoinUrl(`${window.location.origin}/join/${code}`), [code]);
+  useEffect(() => setJoinUrl(`${publicOrigin()}/join/${code}`), [code]);
   const now = useNow(session?.state === "question" && session.mode === "sync");
 
   const current = session?.current ?? 0;
