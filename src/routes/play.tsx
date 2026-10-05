@@ -5,6 +5,8 @@ import { Modal } from "@/components/quiz/Modal";
 import { CardOrnament, ScoreStar } from "@/components/quiz/GameArt";
 import { GradientButton, QuestionCard } from "@/components/quiz/QuestionCard";
 import { FitToScreen } from "@/components/quiz/FitToScreen";
+import { InputAnswer, OrderAnswer } from "@/components/quiz/AnswerArea";
+import { kindOf, orderSteps } from "@/lib/question-kinds";
 import { cn } from "@/lib/utils";
 import { getQuizItems, saveDraft, useQuizStore } from "@/lib/quiz-store";
 import { applyBonus, BONUSES, loadSetup, QUESTION_POINTS, type BonusId, type GameSetup, type Team } from "@/lib/game";
@@ -35,6 +37,7 @@ function PlayPage() {
   const [open, setOpen] = useState<Cell | null>(null);
   const [finished, setFinished] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
+  const [ok, setOk] = useState(false);
   const { quizzes } = useQuizStore();
 
   useEffect(() => {
@@ -149,14 +152,21 @@ function PlayPage() {
                 t: opt,
                 state: !picked ? "idle" : opt === question.correct ? "correct" : opt === picked ? "wrong" : "dim",
               }))}
-              onAnswer={picked ? undefined : (i) => setPicked(options[i]!)}
+              onAnswer={picked ? undefined : (i) => { setPicked(options[i]!); setOk(options[i] === question.correct); }}
+              body={
+                kindOf(question) === "order" ? (
+                  <OrderAnswer key={open.n} steps={orderSteps(question)} seed={open.n} reveal={!!picked} onCheck={(o, c) => { setPicked(o.join("|")); setOk(c); }} />
+                ) : kindOf(question) === "input" ? (
+                  <InputAnswer key={open.n} correct={question.correct} reveal={!!picked} onCheck={(a, c) => { setPicked(a); setOk(c); }} />
+                ) : undefined
+              }
               footer={
                 picked ? (
                   <>
                     <p className="text-center font-display text-xl font-semibold">
-                      {picked === question.correct ? `Верно! +${QUESTION_POINTS} баллов` : "Неверно — правильный ответ выделен зелёным"}
+                      {ok ? `Верно! +${QUESTION_POINTS} баллов` : "Неверно — правильный ответ выделен зелёным"}
                     </p>
-                    <GradientButton onClick={() => resolve(picked === question.correct)}>Дальше</GradientButton>
+                    <GradientButton onClick={() => resolve(ok)}>Дальше</GradientButton>
                   </>
                 ) : null
               }

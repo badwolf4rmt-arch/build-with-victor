@@ -10,6 +10,8 @@ import { saveDraft, type DraftQuestion } from "@/lib/quiz-store";
 import { illustrateQuestions } from "@/lib/quiz-illustrate.functions";
 import { compressImage } from "@/lib/image-compress";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { KINDS, type QuestionKind } from "@/lib/question-kinds";
 import { Modal } from "./Modal";
 import { SubjectCombobox } from "./SubjectCombobox";
 
@@ -104,12 +106,13 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
   const [sourceFile, setSourceFile] = useState<Picked>(null);
   const [advanced, setAdvanced] = useState(false);
   const [count, setCount] = useState(10);
+  const [kinds, setKinds] = useState<QuestionKind[]>(["choice"]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const hasSource = !!text.trim() || !!sourceFile;
   const hasInput = !!topic.trim() || !!plan || hasSource;
-  const canSubmit = hasInput && count >= 1 && count <= MAX_Q && !loading;
+  const canSubmit = hasInput && kinds.length > 0 && count >= 1 && count <= MAX_Q && !loading;
 
   async function submit() {
     setLoading(true);
@@ -118,6 +121,7 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
       const res = await run({
         data: {
           count,
+          kinds,
           subject: subject.trim() || undefined,
           grade: grade ? Number(grade) : undefined,
           topic: topic.trim() || undefined,
@@ -214,6 +218,24 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
                   placeholder="Например: Фотосинтез"
                   className="h-12 w-full rounded-xl border border-border px-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
                 />
+              </div>
+
+              <div className="mt-5">
+                <Label title="Механики вопросов" hint={kinds.length > 1 ? "ИИ распределит вопросы по смыслу: каждая механика встретится хотя бы раз" : "Все вопросы будут одной механики"} />
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {KINDS.map((k) => {
+                    const on = kinds.includes(k.id);
+                    return (
+                      <label key={k.id} className={cn("flex cursor-pointer gap-3 rounded-2xl border-2 p-3", on ? "border-primary bg-accent" : "border-border hover:bg-secondary")}>
+                        <Checkbox checked={on} onCheckedChange={(c) => setKinds((v) => (c ? [...v, k.id] : v.filter((x) => x !== k.id)))} className="mt-0.5" />
+                        <span>
+                          <span className="block text-sm font-semibold">{k.name}</span>
+                          <span className="block text-xs text-muted-foreground">{k.text}</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="mt-5">

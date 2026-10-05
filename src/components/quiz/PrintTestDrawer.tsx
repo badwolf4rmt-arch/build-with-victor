@@ -1,3 +1,4 @@
+import { kindOf, orderSteps, scrambled } from "@/lib/question-kinds";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { CheckCircle2, Loader2, Minus, Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -174,9 +175,20 @@ function buildTestHtml(title: string, items: DraftQuestion[], variants: number, 
     const key: string[] = [];
     const body = qs
       .map((q, i) => {
+        const img = q.image ? `<img src="${q.image.src}">` : "";
+        if (kindOf(q) === "input") {
+          key.push(`${i + 1} — ${q.correct}`);
+          return `<li><p class="q">${esc(q.text)}</p>${img}<p>Ответ: ________________________________</p></li>`;
+        }
+        if (kindOf(q) === "order") {
+          const steps = orderSteps(q);
+          const opts = scrambled(steps, i + v * 31);
+          key.push(`${i + 1} — ${steps.map((s) => LETTERS[opts.indexOf(s)]).join("")}`);
+          return `<li><p class="q">${esc(q.text)}</p>${img}<p class="meta">Расставьте в правильном порядке, впишите буквы: ______</p><ul class="o">${opts.map((o, k) => `<li>${LETTERS[k]}) ${esc(o)}</li>`).join("")}</ul></li>`;
+        }
         const opts = shuffle([q.correct, ...q.incorrect.filter((x) => x.trim())]);
         key.push(`${i + 1} — ${LETTERS[opts.indexOf(q.correct)]}`);
-        return `<li><p class="q">${esc(q.text)}</p>${q.image ? `<img src="${q.image.src}">` : ""}<ul class="o">${opts.map((o, k) => `<li>${LETTERS[k]}) ${esc(o)}</li>`).join("")}</ul></li>`;
+        return `<li><p class="q">${esc(q.text)}</p>${img}<ul class="o">${opts.map((o, k) => `<li>${LETTERS[k]}) ${esc(o)}</li>`).join("")}</ul></li>`;
       })
       .join("");
     keys.push(key);

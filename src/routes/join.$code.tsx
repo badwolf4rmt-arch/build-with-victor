@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { InputAnswer, OrderAnswer } from "@/components/quiz/AnswerArea";
+import { kindOf, ORDER_SEP, orderSteps } from "@/lib/question-kinds";
 import { answerPoints, joinGame, sessionTeams, teamScores, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LivePlayer } from "@/lib/live";
 
 export const Route = createFileRoute("/join/$code")({
@@ -121,7 +123,7 @@ function JoinPage() {
         <p className="py-8 text-center font-display text-2xl font-semibold">
           {!done ? "Время вышло" : done.correct ? `Верно! +${done.points}` : "Неверно"}
         </p>
-        <p className="text-center text-muted-foreground">Правильный ответ: {q.correct}</p>
+        <p className="text-center text-muted-foreground">Правильный ответ: {kindOf(q) === "order" ? orderSteps(q).join(ORDER_SEP) : q.correct}</p>
       </>,
     );
   }
@@ -150,7 +152,7 @@ function Question(props: {
   player: LivePlayer;
   index: number;
   total: number;
-  q: { text: string; correct: string; incorrect: string[]; image?: string | undefined };
+  q: { text: string; correct: string; incorrect: string[]; image?: string | undefined; kind?: "choice" | "order" | "input" | undefined };
   speed: boolean;
   startedAt: number | null;
   showFeedback: boolean;
@@ -163,12 +165,15 @@ function Question(props: {
   const [points, setPoints] = useState(0);
   const [busy, setBusy] = useState(false);
 
-  const pick = async (o: string) => {
+  const [ok, setOk] = useState(false);
+  const kind = kindOf(q);
+  const pick = async (o: string, isCorrect?: boolean) => {
     if (busy || (picked && props.showFeedback)) return;
     setPicked(o);
     setBusy(true);
     const elapsed = Date.now() - (props.startedAt ?? shownAt.current);
-    const correct = o === q.correct;
+    const correct = isCorrect ?? o === q.correct;
+    setOk(correct);
     const pts = answerPoints(correct, props.speed, elapsed);
     setPoints(pts);
     
@@ -193,7 +198,28 @@ function Question(props: {
       </p>
       <p className="font-display text-xl font-semibold leading-7">{q.text}</p>
       {q.image && <img src={q.image} alt="" className="aspect-[3/2] w-full rounded-2xl object-cover" />}
-      <div className="flex flex-col gap-3">
+      {kind === "order" && (
+        <OrderAnswer
+          steps={orderSteps(q)}
+          seed={index}
+          size="sm"
+          reveal={!!picked && props.showFeedback}
+          initial={picked ? picked.split(ORDER_SEP) : undefined}
+          checkLabel={picked ? "Изменить ответ" : "Ответить"}
+          onCheck={(o, c) => void pick(o.join(ORDER_SEP), c)}
+        />
+      )}
+      {kind === "input" && (
+        <InputAnswer
+          correct={q.correct}
+          size="sm"
+          reveal={!!picked && props.showFeedback}
+          initial={picked ?? undefined}
+          checkLabel={picked ? "Изменить ответ" : "Ответить"}
+          onCheck={(a, c) => void pick(a.trim(), c)}
+        />
+      )}
+      <div className={cn("flex flex-col gap-3", kind !== "choice" && "hidden")}>
         {options.map((o) => {
           const state = !picked || !props.showFeedback ? (picked === o ? "picked" : "idle") : o === q.correct ? "correct" : o === picked ? "wrong" : "dim";
           return (
@@ -216,7 +242,7 @@ function Question(props: {
         })}
       </div>
       {picked && props.showFeedback && (
-        <p className="text-center font-display text-lg font-semibold">{picked === q.correct ? `Верно! +${points}` : "Неверно"}</p>
+        <p className="text-center font-display text-lg font-semibold">{ok ? `Верно! +${points}` : "Неверно"}</p>
       )}
     </div>
   );
