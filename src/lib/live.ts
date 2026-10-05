@@ -28,11 +28,6 @@ export function answerPoints(correct: boolean, speedScoring: boolean, elapsedMs:
   return Math.max(Math.ceil(QUESTION_POINTS / 2), Math.round(QUESTION_POINTS * (1 - t / 2)));
 }
 
-/** A submitted answer remains editable only while the question is open and its result is still hidden. */
-export function canReplaceAnswer(state: LiveState, hasSeenCorrectAnswer: boolean): boolean {
-  return state === "question" && !hasSeenCorrectAnswer;
-}
-
 /** Same option order on the teacher screen and every student device. */
 export function optionsFor(q: GameQuestion, index: number): string[] {
   const arr = [q.correct, ...q.incorrect.filter((x) => x.trim())];
@@ -109,18 +104,14 @@ export async function joinGame(code: string, name: string) {
 }
 
 export async function submitAnswer(p: { code: string; player: LivePlayer; question: number; answer: string; correct: boolean; points: number }) {
-  const { error } = await supabase.from("live_answers").upsert(
-    {
-      session_code: p.code,
-      player_id: p.player.id,
-      question: p.question,
-      answer: p.answer,
-      correct: p.correct,
-      points: p.points,
+  const { error } = await supabase.from("live_answers").upsert({
+    session_code: p.code,
+    player_id: p.player.id,
+    question: p.question,
+    answer: p.answer,
+    correct: p.correct,
+    points: p.points,
   }, { onConflict: "player_id,question" });
-    },
-    { onConflict: "player_id,question" },
-  );
   if (error) return false;
   const { data } = await supabase.from("live_answers").select("points").eq("player_id", p.player.id);
   const score = (data ?? []).reduce((s, r) => s + r.points, 0);
