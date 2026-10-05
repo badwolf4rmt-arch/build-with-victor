@@ -39,7 +39,7 @@ export function SubjectCombobox({
   const input = useRef<HTMLInputElement>(null);
 
   const q = normalize(value);
-  const matches = useMemo(() => (q ? SUBJECTS.filter((s) => normalize(s).includes(q)) : SUBJECTS), [q]);
+  const matches = useMemo(() => filterSubjects(value), [value]);
   const exact = useMemo(() => SUBJECTS.some((s) => normalize(s) === q), [q]);
 
   useEffect(() => setActive(0), [q]);
