@@ -4,6 +4,7 @@ import { Pencil, X } from "lucide-react";
 import { Modal } from "@/components/quiz/Modal";
 import { CardOrnament, ScoreStar } from "@/components/quiz/GameArt";
 import { cn } from "@/lib/utils";
+import { getQuizItems, saveDraft, useQuizStore } from "@/lib/quiz-store";
 import { applyBonus, BONUSES, loadSetup, QUESTION_POINTS, type BonusId, type GameSetup, type Team } from "@/lib/game";
 import bg from "@/assets/game-bg.jpg";
 
@@ -32,6 +33,7 @@ function PlayPage() {
   const [open, setOpen] = useState<Cell | null>(null);
   const [finished, setFinished] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
+  const { quizzes } = useQuizStore();
 
   useEffect(() => {
     const s = loadSetup();
@@ -80,6 +82,14 @@ function PlayPage() {
 
   const rows = Math.ceil(cells.length / cols);
 
+  function editQuiz() {
+    const quiz = quizzes.find((q) => q.id === setup?.quizId);
+    if (!quiz) return;
+    const items = getQuizItems(quiz);
+    saveDraft({ title: quiz.title, questions: items.length ? items : [{ text: "", correct: "", incorrect: ["", "", ""] }], cover: quiz.image, id: quiz.id });
+    void navigate({ to: "/quiz/new" });
+  }
+
   return (
     <div className="relative flex h-screen min-h-[600px] flex-col">
       <img src={bg} alt="" className="fixed inset-0 -z-10 h-full w-full object-cover" />
@@ -106,9 +116,9 @@ function PlayPage() {
           ))}
         </div>
         <div className="flex items-center gap-5">
-          <Link to="/quiz/new" aria-label="Редактировать викторину" className="flex size-12 items-center justify-center rounded-2xl bg-secondary hover:bg-muted">
+          <button onClick={editQuiz} aria-label="Редактировать викторину" className="flex size-12 items-center justify-center rounded-2xl bg-secondary hover:bg-muted">
             <Pencil className="size-5" />
-          </Link>
+          </button>
           <button onClick={() => setFinished(true)} className="flex h-12 items-center gap-2.5 rounded-2xl bg-secondary pl-3.5 pr-[18px] text-sm font-semibold hover:bg-muted">
             <X className="size-5" /> Завершить
           </button>
