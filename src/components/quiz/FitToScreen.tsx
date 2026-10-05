@@ -11,7 +11,9 @@ export function FitToScreen({ children, className }: { children: ReactNode; clas
     const i = inner.current;
     if (!o || !i) return;
     const fit = () => {
-      const s = Math.min(1, o.clientHeight / i.scrollHeight, o.clientWidth / i.scrollWidth);
+      const availableHeight = Math.max(0, o.clientHeight - 2);
+      const availableWidth = Math.max(0, o.clientWidth - 2);
+      const s = Math.min(1, availableHeight / i.scrollHeight, availableWidth / i.scrollWidth);
       setScale(Number.isFinite(s) && s > 0 ? s : 1);
     };
     fit();
@@ -22,7 +24,7 @@ export function FitToScreen({ children, className }: { children: ReactNode; clas
   }, []);
 
   return (
-    <div ref={outer} className={`flex min-h-0 items-center justify-center overflow-hidden ${className ?? ""}`}>
+    <div ref={outer} className={`flex min-h-0 min-w-0 items-center justify-center overflow-hidden ${className ?? ""}`}>
       <div ref={inner} className="w-full shrink-0" style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}>
         {children}
       </div>

@@ -99,14 +99,14 @@ function JoinPage() {
   if (!q) return shell(<p className="text-center">Ждём следующий вопрос…</p>);
   const done = myAnswers.find((a) => a.question === index);
 
-  if (session.mode === "sync" && (done || session.state === "reveal")) {
+  if (session.state === "reveal") {
     return shell(
       <>
         {header}
         <p className="py-8 text-center font-display text-2xl font-semibold">
-          {session.state !== "reveal" ? "Ответ принят, ждём остальных" : !done ? "Время вышло" : done.correct ? `Верно! +${done.points}` : "Неверно"}
+          {!done ? "Время вышло" : done.correct ? `Верно! +${done.points}` : "Неверно"}
         </p>
-        {session.state === "reveal" && <p className="text-center text-muted-foreground">Правильный ответ: {q.correct}</p>}
+        <p className="text-center text-muted-foreground">Правильный ответ: {q.correct}</p>
       </>,
     );
   }
@@ -124,8 +124,9 @@ function JoinPage() {
         speed={session.speed_scoring}
         startedAt={session.mode === "sync" ? (session.question_started_at ?? Date.now()) : null}
         showFeedback={session.mode === "self"}
+        initialAnswer={done?.answer}
       />
-    </>,
+    </>
   );
 }
 
@@ -138,29 +139,43 @@ function Question(props: {
   speed: boolean;
   startedAt: number | null;
   showFeedback: boolean;
+  initialAnswer: string | undefined;
 }) {
   const { q, index } = props;
   const options = useMemo(() => optionsFor(q, index), [q, index]);
   const shownAt = useRef(Date.now());
-  const [picked, setPicked] = useState<string | null>(null);
+  const [picked, setPicked] = useState<string | null>(props.initialAnswer ?? null);
   const [points, setPoints] = useState(0);
+  const [busy, setBusy] = useState(false);
 
-  const pick = (o: string) => {
-    if (picked) return;
+  const pick = async (o: string) => {
+    if (busy || (picked && props.showFeedback)) return;
     setPicked(o);
+    setBusy(true);
     const elapsed = Date.now() - (props.startedAt ?? shownAt.current);
     const correct = o === q.correct;
     const pts = answerPoints(correct, props.speed, elapsed);
     setPoints(pts);
+    
     const send = () => void submitAnswer({ code: props.code, player: props.player, question: index, answer: o, correct, points: pts });
-    // Self-paced: show feedback briefly, then the saved answer moves the student to the next question.
-    if (props.showFeedback) setTimeout(send, 1500);
-    else send();
+    
+    if (props.showFeedback) {
+      setTimeout(() => {
+        send();
+        setBusy(false);
+      }, 1500);
+    } else {
+      await submitAnswer({ code: props.code, player: props.player, question: index, answer: o, correct, points: pts });
+      setBusy(false);
+    }
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground">Вопрос {index + 1} из {props.total}{props.startedAt ? ` · ${TIME_LIMIT} с` : ""}</p>
+      <p className="text-sm text-muted-foreground flex justify-between">
+        <span>Вопрос {index + 1} из {props.total}{props.startedAt ? ` · ${TIME_LIMIT} с` : ""}</span>
+        {picked && !props.showFeedback && <span className="text-primary font-semibold">Ответ сохранён</span>}
+      </p>
       <p className="font-display text-xl font-semibold leading-7">{q.text}</p>
       {q.image && <img src={q.image} alt="" className="aspect-[3/2] w-full rounded-2xl object-cover" />}
       <div className="flex flex-col gap-3">
@@ -169,7 +184,7 @@ function Question(props: {
           return (
             <button
               key={o}
-              disabled={!!picked}
+              disabled={busy || (!!picked && props.showFeedback)}
               onClick={() => pick(o)}
               className={cn(
                 "min-h-14 rounded-2xl border-2 p-3 text-left text-base font-semibold transition-colors",
