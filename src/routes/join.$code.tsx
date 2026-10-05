@@ -123,7 +123,7 @@ function JoinPage() {
         q={q}
         speed={session.speed_scoring}
         startedAt={session.mode === "sync" ? (session.question_started_at ?? Date.now()) : null}
-        showFeedback={session.mode === "self"}
+        showFeedback={session.mode === "self" && session.auto_reveal}
         initialAnswer={done?.answer}
       />
     </>

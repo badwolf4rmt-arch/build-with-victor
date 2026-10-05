@@ -52,7 +52,7 @@ function HostPage() {
 
   // Sync mode: reveal automatically when time is up or everyone answered.
   useEffect(() => {
-    if (!session || session.mode !== "sync" || session.state !== "question") return;
+    if (!session || session.mode !== "sync" || session.state !== "question" || !session.auto_reveal) return;
     if (left === 0 || (players.length > 0 && currentAnswers.length >= players.length)) void updateSession(code, { state: "reveal" });
   }, [session, left, players.length, currentAnswers.length, code]);
 

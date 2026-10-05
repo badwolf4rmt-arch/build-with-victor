@@ -89,6 +89,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
   const [advanced, setAdvanced] = useState(false);
   const [liveMode, setLiveMode] = useState<LiveMode>("sync");
   const [speed, setSpeed] = useState(true);
+  const [autoReveal, setAutoReveal] = useState(true);
   const [creating, setCreating] = useState(false);
   const all = bonuses.length === BONUSES.length;
   const singleTeam = who === "solo";
@@ -101,7 +102,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
     if (way === "qr") {
       setCreating(true);
       try {
-        const code = await createLiveSession({ quizId: quiz.id, title: quiz.title, items: gameItems(), mode: liveMode, speedScoring: speed, teams: singleTeam ? [] : teamNames() });
+        const code = await createLiveSession({ quizId: quiz.id, title: quiz.title, items: gameItems(), mode: liveMode, speedScoring: speed, teams: singleTeam ? [] : teamNames(), autoReveal });
         void navigate({ to: "/host/$code", params: { code } });
       } catch {
         toast.error("Не удалось создать игру. Проверьте интернет и попробуйте ещё раз.");
@@ -248,6 +249,13 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                         <span className="block text-sm text-muted-foreground">Кто ответил быстрее, получает больше баллов</span>
                       </span>
                       <Switch checked={speed} onCheckedChange={setSpeed} />
+                    </label>
+                    <label className="flex items-center justify-between gap-6">
+                      <span>
+                        <span className="block text-base font-semibold">Показать правильные ответы</span>
+                        <span className="block text-sm text-muted-foreground">Включено — ответ показывается сразу после вопроса; выключено — только по кнопке учителя</span>
+                      </span>
+                      <Switch checked={autoReveal} onCheckedChange={setAutoReveal} />
                     </label>
                   </div>
                 )}

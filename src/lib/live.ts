@@ -59,7 +59,7 @@ export function sessionTeams(s: { teams?: unknown }): string[] {
   return Array.isArray(s.teams) ? (s.teams as string[]) : [];
 }
 
-export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean; teams: string[] }) {
+export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean; teams: string[]; autoReveal: boolean }) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const { error } = await supabase.from("live_sessions").insert({
@@ -70,6 +70,7 @@ export async function createLiveSession(input: { quizId: string; title: string; 
       mode: input.mode,
       speed_scoring: input.speedScoring,
       teams: input.teams as never,
+      auto_reveal: input.autoReveal,
     });
     if (!error) return code;
     if (error.code !== "23505") throw new Error(error.message);
