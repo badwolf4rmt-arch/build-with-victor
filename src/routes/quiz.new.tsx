@@ -150,6 +150,7 @@ function Editor() {
           title={quiz.title}
           items={quiz.questions}
           onClose={() => setPreview(false)}
+          onEdit={() => setPreview(false)}
           onLaunch={() => { setPreview(false); setLaunch(true); }}
         />
       )}
