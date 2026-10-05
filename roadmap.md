@@ -15,3 +15,4 @@
 
 - [x] Solo/teams in board and QR modes
 - [x] QR: toggle "Показать правильные ответы" — on: auto reveal, off: only by button
+- [x] Не показывать верный ответ отдельной плашкой, если ученик вписал его верно (не дублировать ответ)
