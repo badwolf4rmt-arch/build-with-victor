@@ -59,3 +59,6 @@ export function applyBonus(teams: Team[], idx: number, b: BonusId): Team[] {
   }
   return t;
 }
+
+/** Points a team earns for a correct answer; shown on the preview card and the question list. */
+export const QUESTION_POINTS = 5;

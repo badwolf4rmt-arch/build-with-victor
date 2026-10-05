@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Star, X } from "lucide-react";
 import { Modal } from "@/components/quiz/Modal";
 import { cn } from "@/lib/utils";
-import { applyBonus, BONUSES, loadSetup, type BonusId, type GameSetup, type Team } from "@/lib/game";
+import { applyBonus, BONUSES, loadSetup, QUESTION_POINTS, type BonusId, type GameSetup, type Team } from "@/lib/game";
 import bg from "@/assets/game-bg.jpg";
 
 export const Route = createFileRoute("/play")({
@@ -62,7 +62,7 @@ function PlayPage() {
     if (!open) return;
     let next = teams;
     if (open.bonus) next = applyBonus(teams, turn, open.bonus);
-    else if (correct) next = teams.map((t, i) => (i === turn ? { ...t, score: t.score + 5 } : t));
+    else if (correct) next = teams.map((t, i) => (i === turn ? { ...t, score: t.score + QUESTION_POINTS } : t));
     setTeams(next);
     const nextCells = cells.map((c) => (c.n === open.n ? { ...c, done: true } : c));
     setCells(nextCells);
@@ -149,7 +149,7 @@ function PlayPage() {
             })}
             {picked && (
               <>
-                <p className="text-sm font-semibold">{picked === question.correct ? "Верно! +5 баллов" : `Неверно. Правильный ответ: ${question.correct}`}</p>
+                <p className="text-sm font-semibold">{picked === question.correct ? `Верно! +${QUESTION_POINTS} баллов` : `Неверно. Правильный ответ: ${question.correct}`}</p>
                 <button onClick={() => resolve(picked === question.correct)} className="h-12 rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Дальше</button>
               </>
             )}
