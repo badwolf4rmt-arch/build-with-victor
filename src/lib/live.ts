@@ -28,6 +28,11 @@ export function answerPoints(correct: boolean, speedScoring: boolean, elapsedMs:
   return Math.max(Math.ceil(QUESTION_POINTS / 2), Math.round(QUESTION_POINTS * (1 - t / 2)));
 }
 
+/** An answer can change only before the correct answer is shown. */
+export function canReplaceAnswer(state: LiveState, hasSeenCorrectAnswer: boolean): boolean {
+  return state === "question" && !hasSeenCorrectAnswer;
+}
+
 /** Same option order on the teacher screen and every student device. */
 export function optionsFor(q: GameQuestion, index: number): string[] {
   const arr = [q.correct, ...q.incorrect.filter((x) => x.trim())];
