@@ -45,7 +45,7 @@ export function OrderAnswer({
   const shown = reveal ? steps : order;
   return (
     <div className="flex w-full flex-col gap-3">
-      {!reveal && <p className={cn("text-center text-muted-foreground", size === "lg" ? "text-base" : "text-sm")}>Перетащите карточки в правильном порядке</p>}
+      {!reveal && <p className={cn("text-center font-semibold text-muted-foreground", size === "lg" ? "text-xl" : "text-base")}>Перетащите карточки в правильном порядке</p>}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={shown} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-2">
@@ -56,7 +56,14 @@ export function OrderAnswer({
         </SortableContext>
       </DndContext>
       {onCheck && !reveal && (
-        <button type="button" onClick={() => onCheck(order, isOrderCorrect(order, steps))} className="h-12 rounded-2xl bg-primary text-base font-semibold text-primary-foreground hover:opacity-90">
+        <button
+          type="button"
+          onClick={() => onCheck(order, isOrderCorrect(order, steps))}
+          className={cn(
+            "bg-action-gradient flex flex-wrap items-center justify-center gap-1 rounded-[24px] font-display font-semibold text-primary-foreground hover:opacity-95",
+            size === "lg" ? "min-h-20 px-6 py-4 text-xl" : "min-h-14 px-4 py-3 text-base",
+          )}
+        >
           {checkLabel}
         </button>
       )}
@@ -130,7 +137,15 @@ export function InputAnswer({
           {correct}
         </div>
       ) : onCheck ? (
-        <button type="button" disabled={!value.trim()} onClick={() => onCheck(value, ok)} className="h-12 rounded-2xl bg-primary text-base font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
+        <button
+          type="button"
+          disabled={!value.trim()}
+          onClick={() => onCheck(value, ok)}
+          className={cn(
+            "bg-action-gradient flex flex-wrap items-center justify-center gap-1 rounded-[24px] font-display font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-50",
+            size === "lg" ? "min-h-20 px-6 py-4 text-xl" : "min-h-14 px-4 py-3 text-base",
+          )}
+        >
           {checkLabel}
         </button>
       ) : (
