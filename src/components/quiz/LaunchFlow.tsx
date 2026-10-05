@@ -96,7 +96,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
   const teamNames = () => Array.from({ length: count }, (_, i) => names[i]!.trim() || `Команда ${i + 1}`);
 
   const toggle = (id: BonusId, on: boolean) => setBonuses((b) => (on ? [...b, id] : b.filter((x) => x !== id)));
-  const gameItems = () => getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src }));
+  const gameItems = () => getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src, kind: it.kind }));
 
   const start = async () => {
     if (way === "qr") {

@@ -1,3 +1,4 @@
+import type { QuestionKind } from "./question-kinds";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -249,7 +250,7 @@ export function pluralQuestions(n: number) {
 }
 
 export type QuestionImage = { src: string; name: string; type: string; size: number };
-export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined };
+export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined; kind?: QuestionKind | undefined };
 export type Draft = {
   title: string;
   questions: DraftQuestion[];

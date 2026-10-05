@@ -12,6 +12,7 @@ export function QuestionCard({
   answers,
   onAnswer,
   footer,
+  body,
 }: {
   text: string;
   image?: string | undefined;
@@ -19,6 +20,8 @@ export function QuestionCard({
   answers: { t: string; state: AnswerState }[];
   onAnswer?: ((i: number) => void) | undefined;
   footer?: ReactNode;
+  /** Replaces the answer buttons (ordering / typed-answer mechanics). */
+  body?: ReactNode;
 }) {
   return (
     <div className="relative mt-[27px] min-h-[620px] w-full rounded-[40px] bg-card px-6 py-10 sm:rounded-[64px] md:px-12">
@@ -28,7 +31,7 @@ export function QuestionCard({
           <h2 className="text-center font-display text-[28px] font-semibold leading-9 md:text-[40px] md:leading-[48px]">{text || "Текст вопроса"}</h2>
           {image && <img src={image} alt="" className="aspect-[3/2] w-full rounded-3xl object-cover" />}
         </div>
-        <div className="grid w-full gap-4 md:grid-cols-2">
+        {body ?? <div className="grid w-full gap-4 md:grid-cols-2">
           {answers.map((a, i) => (
             <button
               key={i}
@@ -46,7 +49,7 @@ export function QuestionCard({
               {a.t || "Вариант ответа"}
             </button>
           ))}
-        </div>
+        </div>}
         <div className="flex min-h-32 w-full flex-col justify-end gap-4">
           {footer}
         </div>
