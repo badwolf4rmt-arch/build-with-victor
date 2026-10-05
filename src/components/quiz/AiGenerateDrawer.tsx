@@ -133,8 +133,9 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
 
               <div className="mt-6 grid grid-cols-[1fr_160px] gap-4">
                 <div>
-                  <Label title="Предмет" hint="Начните вводить — можно выбрать из списка или вписать своё название" />
+                  <Label title="Предмет" />
                   <SubjectCombobox value={subject} onChange={setSubject} />
+                  <p className="mt-2 text-xs text-muted-foreground">Начните вводить — можно выбрать из списка или вписать своё название</p>
                 </div>
                 <div>
                   <Label title="Класс" />

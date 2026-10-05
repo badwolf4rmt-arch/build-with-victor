@@ -99,16 +99,23 @@ function Editor() {
   const updateQ = (i: number, patch: Partial<Draft["questions"][number]>) =>
     setQuiz((q) => ({ ...q, questions: q.questions.map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
 
-  function save() {
+  const [saving, setSaving] = useState(false);
+  async function save() {
     if (!quiz.title.trim()) {
       toast.error("Введите название викторины");
       return;
     }
-    const s = addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id);
-    setSaved(s);
-    if (quiz.id !== s.id) setQuiz((q) => ({ ...q, id: s.id }));
-    if (quiz.cover && !s.image) toast.error("Не хватило места в браузере — викторина сохранена без обложки");
-    else toast.success("Викторина сохранена");
+    setSaving(true);
+    try {
+      const s = await addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id ?? quiz.id);
+      setSaved(s);
+      if (quiz.id !== s.id) setQuiz((q) => ({ ...q, id: s.id }));
+      toast.success("Викторина сохранена — изменения видны всем");
+    } catch {
+      toast.error("Не удалось сохранить викторину. Проверьте интернет и попробуйте ещё раз.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -122,10 +129,11 @@ function Editor() {
           <HeaderAction disabled={!saved} onClick={() => setPrint(true)} icon={<Download className="size-5" />} label="Скачать в виде теста" />
           <HeaderAction disabled={!saved} onClick={() => setLaunch(true)} icon={<Play className="size-5 fill-current" />} label="Запустить" filled />
           <button
-            onClick={save}
-            className="flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+            onClick={() => void save()}
+            disabled={saving}
+            className="flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-70"
           >
-            <Save className="size-5" /> Сохранить
+            {saving ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5" />} {saving ? "Сохраняем…" : "Сохранить"}
           </button>
         </div>
       </header>
