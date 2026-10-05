@@ -301,8 +301,8 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
                   <Sparkles className="size-12 text-primary" />
                   <Loader2 className="absolute size-28 animate-spin text-primary/40" strokeWidth={1} />
                 </div>
-                <p className="font-display text-xl font-semibold">ИИ создаёт вопросы…</p>
-                <p className="text-sm text-muted-foreground">Это может занять до двух минут</p>
+                <p className="font-display text-xl font-semibold">ИИ создаёт вопросы и иллюстрации…</p>
+                <p className="text-sm text-muted-foreground">Это может занять до трёх минут</p>
               </div>
             )}
           </DialogPrimitive.Content>
