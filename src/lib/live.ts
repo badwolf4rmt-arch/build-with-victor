@@ -117,6 +117,7 @@ export async function submitAnswer(p: { code: string; player: LivePlayer; questi
       answer: p.answer,
       correct: p.correct,
       points: p.points,
+  }, { onConflict: "player_id,question" });
     },
     { onConflict: "player_id,question" },
   );

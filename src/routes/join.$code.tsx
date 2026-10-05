@@ -157,7 +157,7 @@ function Question(props: {
   }, [props.initialAnswer]);
 
   const pick = (o: string) => {
-    if (picked && !props.allowChanges) return;
+    if (picked && (!props.allowChanges || props.showFeedback)) return;
     setPicked(o);
     const elapsed = Date.now() - (props.startedAt ?? shownAt.current);
     const correct = o === q.correct;
@@ -182,7 +182,7 @@ function Question(props: {
               key={o}
               type="button"
               variant="outline"
-              disabled={!!picked && !props.allowChanges}
+              disabled={!!picked && (!props.allowChanges || props.showFeedback)}
               onClick={() => pick(o)}
               className={cn(
                 "h-auto min-h-14 w-full justify-start whitespace-normal rounded-2xl border-2 p-3 text-left text-base font-semibold shadow-none transition-colors",
