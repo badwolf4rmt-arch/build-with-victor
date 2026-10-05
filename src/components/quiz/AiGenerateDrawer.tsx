@@ -4,10 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { FileText, Info, Loader2, Minus, Paperclip, Plus, Sparkles, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateQuiz, SUBJECTS } from "@/lib/quiz-ai.functions";
+import { generateQuiz } from "@/lib/quiz-ai.functions";
 import { MATERIAL_ACCEPT, readMaterialFile, type Material } from "@/lib/material-file";
 import { saveDraft } from "@/lib/quiz-store";
 import { Modal } from "./Modal";
+import { SubjectCombobox } from "./SubjectCombobox";
 
 const MAX_Q = 20;
 type Picked = { name: string; data: Material } | null;
