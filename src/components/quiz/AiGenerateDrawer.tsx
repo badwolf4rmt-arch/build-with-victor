@@ -133,19 +133,8 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
 
               <div className="mt-6 grid grid-cols-[1fr_160px] gap-4">
                 <div>
-                  <Label title="Предмет" />
-                  <Select value={subject} onValueChange={setSubject}>
-                    <SelectTrigger className="h-12 rounded-xl">
-                      <SelectValue placeholder="Выберите предмет" />
-                    </SelectTrigger>
-                    <SelectContent className="z-[60] max-h-72">
-                      {SUBJECTS.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label title="Предмет" hint="Начните вводить — можно выбрать из списка или вписать своё название" />
+                  <SubjectCombobox value={subject} onChange={setSubject} />
                 </div>
                 <div>
                   <Label title="Класс" />
