@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      folders: {
+        Row: {
+          id: string
+          name: string
+          position: number
+          quiz_ids: string[]
+        }
+        Insert: {
+          id: string
+          name: string
+          position?: number
+          quiz_ids?: string[]
+        }
+        Update: {
+          id?: string
+          name?: string
+          position?: number
+          quiz_ids?: string[]
+        }
+        Relationships: []
+      }
+      quizzes: {
+        Row: {
+          cover_url: string | null
+          created_at: number
+          deleted: boolean
+          grade: string | null
+          id: string
+          items: Json
+          mine: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: number
+          deleted?: boolean
+          grade?: string | null
+          id: string
+          items?: Json
+          mine?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: number
+          deleted?: boolean
+          grade?: string | null
+          id?: string
+          items?: Json
+          mine?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
