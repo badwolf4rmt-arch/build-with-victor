@@ -139,7 +139,7 @@ function Question(props: {
   speed: boolean;
   startedAt: number | null;
   showFeedback: boolean;
-  initialAnswer?: string;
+  initialAnswer: string | undefined;
 }) {
   const { q, index } = props;
   const options = useMemo(() => optionsFor(q, index), [q, index]);
