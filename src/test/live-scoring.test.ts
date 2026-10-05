@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { answerPoints, canReplaceAnswer, optionsFor } from "@/lib/live";
+import { answerPoints, canReplaceAnswer, optionsFor, teamScores } from "@/lib/live";
 
 describe("live game scoring", () => {
   it("wrong answer gives 0", () => expect(answerPoints(false, true, 0)).toBe(0));
@@ -23,5 +23,12 @@ describe("answer changes", () => {
 
   it("locks the answer once the student has seen the correct answer", () => {
     expect(canReplaceAnswer("reveal", true)).toBe(false);
+  });
+});
+
+describe("team scoring", () => {
+  it("sums member scores per team and ranks teams", () => {
+    const r = teamScores(["A", "B"], [{ team: "A", score: 5 }, { team: "B", score: 4 }, { team: "B", score: 3 }, { team: null, score: 9 }]);
+    expect(r).toEqual([{ name: "B", score: 7, members: 2 }, { name: "A", score: 5, members: 1 }]);
   });
 });

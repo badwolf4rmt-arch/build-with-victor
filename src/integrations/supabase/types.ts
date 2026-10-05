@@ -90,6 +90,7 @@ export type Database = {
           name: string
           score: number
           session_code: string
+          team: string | null
         }
         Insert: {
           id?: string
@@ -97,6 +98,7 @@ export type Database = {
           name: string
           score?: number
           session_code: string
+          team?: string | null
         }
         Update: {
           id?: string
@@ -104,6 +106,7 @@ export type Database = {
           name?: string
           score?: number
           session_code?: string
+          team?: string | null
         }
         Relationships: [
           {
@@ -117,6 +120,7 @@ export type Database = {
       }
       live_sessions: {
         Row: {
+          auto_reveal: boolean
           code: string
           created_at: string
           current: number
@@ -126,9 +130,11 @@ export type Database = {
           quiz_id: string
           speed_scoring: boolean
           state: string
+          teams: Json
           title: string
         }
         Insert: {
+          auto_reveal?: boolean
           code: string
           created_at?: string
           current?: number
@@ -138,9 +144,11 @@ export type Database = {
           quiz_id: string
           speed_scoring?: boolean
           state?: string
+          teams?: Json
           title?: string
         }
         Update: {
+          auto_reveal?: boolean
           code?: string
           created_at?: string
           current?: number
@@ -150,6 +158,7 @@ export type Database = {
           quiz_id?: string
           speed_scoring?: boolean
           state?: string
+          teams?: Json
           title?: string
         }
         Relationships: []

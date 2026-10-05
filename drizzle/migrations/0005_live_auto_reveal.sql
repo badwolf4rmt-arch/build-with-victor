@@ -1,0 +1,1 @@
+ALTER TABLE public.live_sessions ADD COLUMN IF NOT EXISTS auto_reveal boolean NOT NULL DEFAULT true;

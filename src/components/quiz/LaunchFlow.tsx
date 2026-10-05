@@ -78,7 +78,9 @@ function RulesModal({ open, onClose, onContinue }: { open: boolean; onClose: () 
 
 function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onClose: () => void }) {
   const navigate = useNavigate();
-  const [count, setCount] = useState(1);
+  const [count, setCount] = useState(2);
+  const [who, setWho] = useState<"solo" | "teams">("teams");
+  const [soloName, setSoloName] = useState("");
   const [names, setNames] = useState(["Команда 1", "Команда 2", "Команда 3", "Команда 4", "Команда 5"]);
   const [avatars, setAvatars] = useState(AVATARS.slice(0, 5));
   const [picker, setPicker] = useState<number | null>(null);
@@ -87,9 +89,11 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
   const [advanced, setAdvanced] = useState(false);
   const [liveMode, setLiveMode] = useState<LiveMode>("sync");
   const [speed, setSpeed] = useState(true);
+  const [autoReveal, setAutoReveal] = useState(true);
   const [creating, setCreating] = useState(false);
   const all = bonuses.length === BONUSES.length;
-  const singleTeam = count === 1;
+  const singleTeam = who === "solo";
+  const teamNames = () => Array.from({ length: count }, (_, i) => names[i]!.trim() || `Команда ${i + 1}`);
 
   const toggle = (id: BonusId, on: boolean) => setBonuses((b) => (on ? [...b, id] : b.filter((x) => x !== id)));
   const gameItems = () => getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src }));
@@ -98,7 +102,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
     if (way === "qr") {
       setCreating(true);
       try {
-        const code = await createLiveSession({ quizId: quiz.id, title: quiz.title, items: gameItems(), mode: liveMode, speedScoring: speed });
+        const code = await createLiveSession({ quizId: quiz.id, title: quiz.title, items: gameItems(), mode: liveMode, speedScoring: speed, teams: singleTeam ? [] : teamNames(), autoReveal });
         void navigate({ to: "/host/$code", params: { code } });
       } catch {
         toast.error("Не удалось создать игру. Проверьте интернет и попробуйте ещё раз.");
@@ -112,7 +116,9 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
       title: quiz.title,
       questions: getQuizItems(quiz).length,
       items: gameItems(),
-      teams: Array.from({ length: count }, (_, i) => ({ name: names[i]!.trim() || `Команда ${i + 1}`, avatar: avatars[i]!, score: 0 })),
+      teams: singleTeam
+        ? [{ name: soloName.trim() || "Ученик", avatar: avatars[0]!, score: 0 }]
+        : teamNames().map((name, i) => ({ name, avatar: avatars[i]!, score: 0 })),
       bonuses: singleTeam ? [] : bonuses,
     });
     void navigate({ to: "/play" });
@@ -132,13 +138,92 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
           <div className="flex-1 overflow-y-auto px-8 pb-6 pt-8">
             <p className="text-xl font-semibold leading-6">Как проводим?</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              {([["board", "На доске командами", "Команды по очереди выбирают карточки"], ["qr", "На устройствах учеников", "Ученики сканируют QR-код и отвечают с телефонов"]] as const).map(([id, t, d]) => (
+              {([["board", "На доске", "Карточки с вопросами на общем экране"], ["qr", "На устройствах учеников", "Ученики сканируют QR-код и отвечают с телефонов"]] as const).map(([id, t, d]) => (
                 <button key={id} onClick={() => setWay(id)} className={cn("rounded-2xl border-2 p-4 text-left", way === id ? "border-primary bg-accent" : "border-border hover:bg-secondary")}>
                   <p className="text-base font-semibold">{t}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{d}</p>
                 </button>
               ))}
             </div>
+
+            <p className="mt-8 text-xl font-semibold leading-6">Кто играет?</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {([["solo", way === "qr" ? "Каждый сам за себя" : "Один ученик", way === "qr" ? "Личный рейтинг учеников" : "Ученик отвечает на все вопросы"], ["teams", "Командами", way === "qr" ? "Ученик выбирает команду, баллы складываются" : "Команды отвечают по очереди"]] as const).map(([id, t, d]) => (
+                <button key={id} onClick={() => setWho(id)} className={cn("rounded-2xl border-2 p-4 text-left", who === id ? "border-primary bg-accent" : "border-border hover:bg-secondary")}>
+                  <p className="text-base font-semibold">{t}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{d}</p>
+                </button>
+              ))}
+            </div>
+
+            {way === "board" && who === "solo" && (
+              <div className="mt-8 flex items-center gap-3">
+                <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl">{avatars[0]}</span>
+                <input
+                  value={soloName}
+                  maxLength={30}
+                  onChange={(e) => setSoloName(e.target.value)}
+                  placeholder="Имя ученика"
+                  className="h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
+                />
+              </div>
+            )}
+
+            {who === "teams" && (
+              <>
+                <div className="mt-8 flex items-start justify-between gap-5">
+                  <div>
+                    <p className="text-xl font-semibold leading-6">Сколько команд участвует?</p>
+                    <p className="mt-2 text-sm text-muted-foreground">Не забудьте придумать им названия</p>
+                  </div>
+                  <div className="mt-1.5 flex gap-1">
+                    {[2, 3, 4, 5].map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setCount(n)}
+                        className={cn("size-11 rounded-xl text-base font-semibold transition-colors", n === count ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted")}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                  {Array.from({ length: count }, (_, i) => (
+                    <div key={i} className="relative flex items-center gap-3">
+                      <button
+                        aria-label="Сменить аватар"
+                        onClick={() => setPicker(picker === i ? null : i)}
+                        className="group relative flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl"
+                      >
+                        {avatars[i]}
+                        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/70 text-base text-card opacity-0 transition-opacity group-hover:opacity-100">✎</span>
+                      </button>
+                      <input
+                        value={names[i]}
+                        maxLength={30}
+                        onChange={(e) => setNames((n) => n.map((x, j) => (j === i ? e.target.value : x)))}
+                        className="h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
+                      />
+                      {picker === i && (
+                        <div className="absolute left-0 top-[72px] z-10 grid grid-cols-3 gap-3 rounded-2xl bg-card p-4 shadow-card">
+                          {AVATARS.map((a) => (
+                            <button
+                              key={a}
+                              onClick={() => { setAvatars((v) => v.map((x, j) => (j === i ? a : x))); setPicker(null); }}
+                              className={cn("flex size-16 items-center justify-center rounded-full text-4xl hover:bg-secondary", a === avatars[i] && "bg-accent")}
+                            >
+                              {a}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
 
             {way === "qr" ? (
               <div className="mt-8">
@@ -165,64 +250,17 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                       </span>
                       <Switch checked={speed} onCheckedChange={setSpeed} />
                     </label>
+                    <label className="flex items-center justify-between gap-6">
+                      <span>
+                        <span className="block text-base font-semibold">Показать правильные ответы</span>
+                        <span className="block text-sm text-muted-foreground">Включено — ответ показывается сразу после вопроса; выключено — только по кнопке учителя</span>
+                      </span>
+                      <Switch checked={autoReveal} onCheckedChange={setAutoReveal} />
+                    </label>
                   </div>
                 )}
               </div>
             ) : (
-            <>
-            <div className="mt-10 flex items-start justify-between gap-5">
-
-              <div>
-                <p className="text-xl font-semibold leading-6">Сколько команд участвует?</p>
-                <p className="mt-2 text-sm text-muted-foreground">Не забудьте придумать им названия</p>
-              </div>
-              <div className="mt-1.5 flex gap-1">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setCount(n)}
-                    className={cn("size-11 rounded-xl text-base font-semibold transition-colors", n === count ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted")}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
-              {Array.from({ length: count }, (_, i) => (
-                <div key={i} className="relative flex items-center gap-3">
-                  <button
-                    aria-label="Сменить аватар"
-                    onClick={() => setPicker(picker === i ? null : i)}
-                    className="group relative flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl"
-                  >
-                    {avatars[i]}
-                    <span className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/70 text-base text-card opacity-0 transition-opacity group-hover:opacity-100">✎</span>
-                  </button>
-                  <input
-                    value={names[i]}
-                    maxLength={30}
-                    onChange={(e) => setNames((n) => n.map((x, j) => (j === i ? e.target.value : x)))}
-                    className="h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
-                  />
-                  {picker === i && (
-                    <div className="absolute left-0 top-[72px] z-10 grid grid-cols-3 gap-3 rounded-2xl bg-card p-4 shadow-card">
-                      {AVATARS.map((a) => (
-                        <button
-                          key={a}
-                          onClick={() => { setAvatars((v) => v.map((x, j) => (j === i ? a : x))); setPicker(null); }}
-                          className={cn("flex size-16 items-center justify-center rounded-full text-4xl hover:bg-secondary", a === avatars[i] && "bg-accent")}
-                        >
-                          {a}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
             <div className="mt-12">
               <p className="text-xl font-semibold leading-6">Если хотите, добавьте бонусы</p>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -249,7 +287,6 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                 ))}
               </div>
             </div>
-            </>
             )}
           </div>
 
