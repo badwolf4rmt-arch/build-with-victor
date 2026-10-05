@@ -11,6 +11,7 @@ import { Modal } from "./Modal";
 import { SubjectCombobox } from "./SubjectCombobox";
 
 const MAX_Q = 20;
+const MAX_TEXT = 30000;
 type Picked = { name: string; data: Material } | null;
 
 function FilePick({ value, onChange, label }: { value: Picked; onChange: (p: Picked) => void; label: string }) {
