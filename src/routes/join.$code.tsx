@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { answerPoints, joinGame, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LivePlayer } from "@/lib/live";
+import { answerPoints, joinGame, sessionTeams, teamScores, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LivePlayer } from "@/lib/live";
 
 export const Route = createFileRoute("/join/$code")({
   head: () => ({
@@ -22,6 +22,7 @@ function JoinPage() {
   const { session, players, answers } = useLiveGame(code);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [team, setTeam] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const storeKey = `live-player-${code}`;
   useEffect(() => setPlayerId(localStorage.getItem(storeKey)), [storeKey]);
@@ -38,15 +39,16 @@ function JoinPage() {
   if (session === undefined) return shell(<p className="text-center">Загрузка…</p>);
   if (!session) return shell(<p className="text-center">Игра с кодом {code} не найдена</p>);
 
+  const teams = sessionTeams(session);
   if (!playerId || (!me && players.length > 0 && !busy)) {
     return shell(
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          if (!name.trim()) return;
+          if (!name.trim() || (teams.length > 0 && !team)) return;
           setBusy(true);
           try {
-            const p = await joinGame(code, name);
+            const p = await joinGame(code, name, team);
             localStorage.setItem(storeKey, p.id);
             setPlayerId(p.id);
           } finally {
@@ -64,7 +66,17 @@ function JoinPage() {
           placeholder="Ваше имя"
           className="h-14 rounded-xl border border-border bg-card px-4 text-lg outline-none focus:border-primary"
         />
-        <button disabled={busy || !name.trim()} className="h-14 rounded-xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-50">
+        {teams.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-semibold">Выберите команду</p>
+            <div className="grid grid-cols-2 gap-2">
+              {teams.map((t) => (
+                <button type="button" key={t} onClick={() => setTeam(t)} className={cn("min-h-12 rounded-xl border-2 px-3 text-sm font-semibold", team === t ? "border-primary bg-primary text-primary-foreground" : "border-border")}>{t}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        <button disabled={busy || !name.trim() || (teams.length > 0 && !team)} className="h-14 rounded-xl bg-primary text-base font-semibold text-primary-foreground disabled:opacity-50">
           Войти в игру
         </button>
       </form>,
@@ -75,7 +87,7 @@ function JoinPage() {
   const total = session.items.length;
   const header = (
     <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
-      <span className="truncate font-semibold text-foreground">{me.name}</span>
+      <span className="truncate font-semibold text-foreground">{me.name}{me.team ? ` · ${me.team}` : ""}</span>
       <span>⭐ {me.score}</span>
     </div>
   );
@@ -89,7 +101,10 @@ function JoinPage() {
         {header}
         <p className="text-center font-display text-3xl font-semibold">Готово!</p>
         <p className="mt-2 text-center">Верных ответов: {myAnswers.filter((a) => a.correct).length} из {total}</p>
-        <p className="mt-1 text-center">Баллы: {me.score}{session.state === "finished" ? ` · место ${place}` : ""}</p>
+        <p className="mt-1 text-center">Баллы: {me.score}{session.state === "finished" && !me.team ? ` · место ${place}` : ""}</p>
+        {me.team && session.state === "finished" && (
+          <p className="mt-1 text-center">Команда «{me.team}» · место {teamScores(teams, players).findIndex((t) => t.name === me.team) + 1}</p>
+        )}
       </>,
     );
   }

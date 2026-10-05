@@ -13,5 +13,5 @@
 - [x] Разрешить ученику менять ответ до показа правильного ответа, сохраняя только последний выбор
 - [x] Адаптировать экран вопроса ученика под ширину и высоту устройства без прокрутки
 
-- [ ] Solo/teams in board and QR modes
-- [ ] QR: toggle "Показать правильные ответы" — on: auto reveal, off: only by button
+- [x] Solo/teams in board and QR modes
+- [x] QR: toggle "Показать правильные ответы" — on: auto reveal, off: only by button

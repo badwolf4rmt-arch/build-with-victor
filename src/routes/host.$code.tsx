@@ -4,7 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { X } from "lucide-react";
 import { GradientButton, QuestionCard } from "@/components/quiz/QuestionCard";
 import { FitToScreen } from "@/components/quiz/FitToScreen";
-import { optionsFor, TIME_LIMIT, updateSession, useLiveGame, type LiveAnswer, type LivePlayer } from "@/lib/live";
+import { optionsFor, sessionTeams, teamScores, TIME_LIMIT, updateSession, useLiveGame, type LiveAnswer, type LivePlayer } from "@/lib/live";
 import { QUESTION_POINTS } from "@/lib/game";
 import bg from "@/assets/game-bg.jpg";
 
@@ -67,6 +67,7 @@ function HostPage() {
 
   const total = session.items.length;
   const ranking = [...players].sort((a, b) => b.score - a.score);
+  const teams = teamScores(sessionTeams(session), players);
   const startQuestion = (i: number) => updateSession(code, { state: "question", current: i, question_started_at: Date.now() });
   const finish = () => updateSession(code, { state: "finished" });
 
@@ -101,7 +102,7 @@ function HostPage() {
               <p className="font-display text-2xl font-semibold">Подключились: {players.length}</p>
               <div className="mt-4 flex flex-1 flex-wrap content-start gap-2">
                 {players.map((p) => (
-                  <span key={p.id} className="rounded-full bg-secondary px-4 py-2 text-base font-semibold">{p.name}</span>
+                  <span key={p.id} className="rounded-full bg-secondary px-4 py-2 text-base font-semibold">{p.name}{p.team ? ` · ${p.team}` : ""}</span>
                 ))}
                 {!players.length && <p className="text-muted-foreground">Ждём учеников…</p>}
               </div>
@@ -127,16 +128,19 @@ function HostPage() {
             players={players}
             answers={currentAnswers}
             ranking={ranking}
+            teams={teams}
             onReveal={() => void updateSession(code, { state: "reveal" })}
             onNext={() => void (current + 1 < total ? startQuestion(current + 1) : finish())}
           />
         )}
 
+        {session.mode === "self" && session.state === "question" && teams.length > 0 && <TeamTable teams={teams} />}
         {session.mode === "self" && session.state === "question" && <ResultsTable players={ranking} answers={answers} total={total} />}
 
         {session.state === "finished" && (
           <div className="mx-auto w-full max-w-[1100px]">
             <p className="mb-4 text-center font-display text-4xl font-semibold text-card">Итоги</p>
+            {teams.length > 0 && <TeamTable teams={teams} />}
             <ResultsTable players={ranking} answers={answers} total={total} />
           </div>
         )}
@@ -155,6 +159,7 @@ function SyncQuestion(props: {
   players: LivePlayer[];
   answers: LiveAnswer[];
   ranking: LivePlayer[];
+  teams: { name: string; score: number }[];
   onReveal: () => void;
   onNext: () => void;
 }) {
@@ -179,7 +184,9 @@ function SyncQuestion(props: {
             reveal ? (
               <>
                 <div className="flex flex-wrap justify-center gap-2">
-                  {props.ranking.slice(0, 5).map((p, i) => (
+                  {props.teams.length > 0 ? props.teams.map((t, i) => (
+                    <span key={t.name} className="rounded-full bg-secondary px-4 py-2 font-semibold">{i + 1}. {t.name} — {t.score}</span>
+                  )) : props.ranking.slice(0, 5).map((p, i) => (
                     <span key={p.id} className="rounded-full bg-secondary px-4 py-2 font-semibold">{i + 1}. {p.name} — {p.score}</span>
                   ))}
                 </div>
@@ -200,7 +207,7 @@ function ResultsTable({ players, answers, total }: { players: LivePlayer[]; answ
     <div className="mx-auto w-full max-w-[1100px] overflow-hidden rounded-[32px] bg-card">
       <table className="w-full text-left text-base">
         <thead className="bg-secondary text-sm text-muted-foreground">
-          <tr><th className="px-6 py-3">#</th><th className="px-6 py-3">Ученик</th><th className="px-6 py-3">Ответил</th><th className="px-6 py-3">Верно</th><th className="px-6 py-3">Баллы</th></tr>
+          <tr><th className="px-6 py-3">#</th><th className="px-6 py-3">Ученик</th><th className="px-6 py-3">Команда</th><th className="px-6 py-3">Ответил</th><th className="px-6 py-3">Верно</th><th className="px-6 py-3">Баллы</th></tr>
         </thead>
         <tbody>
           {players.map((p, i) => {
@@ -208,16 +215,30 @@ function ResultsTable({ players, answers, total }: { players: LivePlayer[]; answ
             return (
               <tr key={p.id} className="border-t border-border">
                 <td className="px-6 py-3 font-semibold">{i + 1}</td>
-                <td className="px-6 py-3">{p.name}</td>
+                <td className="px-6 py-3">{p.name}</td><td className="px-6 py-3">{p.team ?? "—"}</td>
                 <td className="px-6 py-3">{mine.length}/{total}</td>
                 <td className="px-6 py-3">{mine.filter((a) => a.correct).length}</td>
                 <td className="px-6 py-3 font-bold">{p.score}</td>
               </tr>
             );
           })}
-          {!players.length && <tr><td colSpan={5} className="px-6 py-6 text-center text-muted-foreground">Пока никто не подключился</td></tr>}
+          {!players.length && <tr><td colSpan={6} className="px-6 py-6 text-center text-muted-foreground">Пока никто не подключился</td></tr>}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function TeamTable({ teams }: { teams: { name: string; score: number; members: number }[] }) {
+  return (
+    <div className="mx-auto mb-6 grid w-full max-w-[1100px] gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      {teams.map((t, i) => (
+        <div key={t.name} className="rounded-[24px] bg-card p-5 text-center">
+          <p className="text-sm text-muted-foreground">{i + 1} место · {t.members} уч.</p>
+          <p className="truncate font-display text-xl font-semibold">{t.name}</p>
+          <p className="font-display text-3xl font-semibold">{t.score}</p>
+        </div>
+      ))}
     </div>
   );
 }
