@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronDown, FileText, Info, Loader2, Minus, Paperclip, Plus, Settings, Sparkles, X } from "lucide-react";
+import { ChevronDown, FileText, Loader2, Minus, Paperclip, Plus, Settings, Sparkles, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateQuiz } from "@/lib/quiz-ai.functions";
