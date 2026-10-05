@@ -14,3 +14,4 @@
 - Design tokens (colors, card shadow, quiz gradient) are defined in `src/styles.css`; components use semantic classes only — keeps the Figma palette in one place.
 - AI quiz generation runs in a server function (`src/lib/quiz-ai.functions.ts`) via OpenRouter (`ai-gateway.server.ts`, `OPENROUTER_API_KEY` secret, model `google/gemini-3.1-pro-preview`) — keeps the API key server-side; generated drafts pass to the editor via sessionStorage.
 - Question images are cropped client-side to JPEG data URLs and stored in the draft; AI image generation goes through `src/lib/quiz-image.functions.ts` — no file storage until a backend is added.
+- Lesson files for AI generation are read in `src/lib/material-file.ts`: TXT/DOCX to text in the browser, PDF/images sent to the model as file parts — no file storage needed.

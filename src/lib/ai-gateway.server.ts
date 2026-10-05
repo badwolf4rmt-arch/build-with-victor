@@ -11,7 +11,19 @@ export class GatewayError extends Error {
 }
 
 /** Calls OpenRouter chat completions and returns the final text. */
-export async function generateText(system: string, prompt: string): Promise<string> {
+export type AiFile = { name: string; dataUrl: string };
+
+export async function generateText(system: string, prompt: string, files: AiFile[] = []): Promise<string> {
+  const userContent = files.length
+    ? [
+        { type: "text", text: prompt },
+        ...files.map((f) =>
+          f.dataUrl.startsWith("data:image/")
+            ? { type: "image_url", image_url: { url: f.dataUrl } }
+            : { type: "file", file: { filename: f.name, file_data: f.dataUrl } },
+        ),
+      ]
+    : prompt;
   const apiKey = process.env["OPENROUTER_API_KEY"];
   if (!apiKey) throw new GatewayError(401, "ИИ не настроен");
 
@@ -25,7 +37,7 @@ export async function generateText(system: string, prompt: string): Promise<stri
       model: MODEL,
       messages: [
         { role: "system", content: system },
-        { role: "user", content: prompt },
+        { role: "user", content: userContent },
       ],
     }),
   }).catch(() => null);
