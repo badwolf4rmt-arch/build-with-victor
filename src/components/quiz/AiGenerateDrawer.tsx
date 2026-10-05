@@ -11,6 +11,7 @@ import { Modal } from "./Modal";
 import { SubjectCombobox } from "./SubjectCombobox";
 
 const MAX_Q = 20;
+const MAX_TEXT = 30000;
 type Picked = { name: string; data: Material } | null;
 
 function FilePick({ value, onChange, label }: { value: Picked; onChange: (p: Picked) => void; label: string }) {
@@ -129,7 +130,6 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
                 <div>
                   <Label title="Предмет" />
                   <SubjectCombobox value={subject} onChange={setSubject} />
-                  <p className="mt-2 text-xs text-muted-foreground">Начните вводить — можно выбрать из списка или вписать своё название</p>
                 </div>
                 <div>
                   <Label title="Класс" />
@@ -160,7 +160,7 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
               </div>
 
               <div className="mt-5">
-                <Label title="План урока" hint="Необязательно — вопросы подстроятся под цели и этапы урока" />
+                <Label title="План урока" />
                 <FilePick value={plan} onChange={setPlan} label="Загрузить план урока" />
               </div>
 
@@ -178,14 +178,19 @@ export function AiGenerateDrawer({ open, onOpenChange }: { open: boolean; onOpen
               {advanced && (
                 <>
                   <div className="mt-5">
-                    <Label title="Учебный текст" hint="Необязательно — тогда вопросы будут строго по нему" />
-                    <textarea
-                      value={text}
-                      onChange={(e) => setText(e.target.value)}
-                      maxLength={30000}
-                      placeholder="Вставьте текст из учебника, статьи или презентации"
-                      className="h-40 w-full resize-none rounded-2xl border border-border p-4 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
-                    />
+                    <Label title="Учебный текст" />
+                    <div className="relative">
+                      <textarea
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        maxLength={MAX_TEXT}
+                        placeholder="Вставьте текст из учебника, статьи или презентации"
+                        className="h-40 w-full resize-none rounded-2xl border border-border p-4 pb-8 text-sm outline-none placeholder:text-muted-foreground focus:border-primary"
+                      />
+                      <span className="pointer-events-none absolute bottom-3 right-4 text-xs text-muted-foreground">
+                        {text.length}/{MAX_TEXT}
+                      </span>
+                    </div>
                     <div className="mt-2">
                       <FilePick value={sourceFile} onChange={setSourceFile} label="Или загрузить файл с текстом" />
                     </div>
