@@ -1,11 +1,13 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { X } from "lucide-react";
+import { Settings, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { getQuizItems, type Quiz } from "@/lib/quiz-store";
 import { AVATARS, BONUSES, HIDE_RULES_KEY, saveSetup, type BonusId } from "@/lib/game";
+import { createLiveSession, TIME_LIMIT, type LiveMode } from "@/lib/live";
 import classroom from "@/assets/rules-classroom.jpg";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Modal } from "./Modal";
@@ -247,11 +249,13 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                 ))}
               </div>
             </div>
+            </>
+            )}
           </div>
 
           <div className="flex justify-center py-3">
-            <button onClick={start} className="h-12 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground hover:opacity-90">
-              Начать викторину
+            <button disabled={creating} onClick={() => void start()} className="h-12 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
+              {way === "qr" ? "Создать игру и показать QR-код" : "Начать викторину"}
             </button>
           </div>
         </DialogPrimitive.Content>
