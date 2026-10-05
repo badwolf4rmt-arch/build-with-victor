@@ -93,36 +93,36 @@ function PlayPage() {
   }
 
   return (
-    <div className="relative flex h-screen min-h-[600px] flex-col">
+    <div className="relative flex h-dvh min-h-0 flex-col overflow-hidden">
       <img src={bg} alt="" className="fixed inset-0 -z-10 h-full w-full object-cover" />
-      <header className="flex items-center justify-between gap-4 rounded-b-[32px] bg-card px-6 py-5">
+      <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-b-[24px] bg-card px-3 py-2.5 sm:rounded-b-[32px] sm:px-6 sm:py-3 lg:grid-cols-[177px_minmax(0,1fr)_auto]">
         <div className="hidden w-[177px] lg:block" />
-        <div className="flex flex-wrap justify-center gap-3">
+        <div className="flex min-w-0 justify-start gap-2 overflow-x-auto lg:justify-center lg:gap-3">
           {teams.map((t, i) => (
             <div
               key={i}
               className={cn(
-                "flex items-center gap-2 rounded-full border-[3px] border-team-chip py-2 pl-2 pr-4 lg:w-[230px]",
+                "flex shrink-0 items-center gap-2 rounded-full border-[3px] border-team-chip py-1.5 pl-1.5 pr-3 lg:w-[230px] lg:py-2 lg:pl-2 lg:pr-4",
                 i === turn ? "bg-team-chip" : "bg-card",
               )}
             >
-              <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-team-chip text-3xl">{t.avatar}</span>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-team-chip text-2xl lg:size-14 lg:text-3xl">{t.avatar}</span>
               <div className="min-w-0">
-                <p className="flex items-center gap-1 font-display text-2xl font-semibold leading-8">
-                  <ScoreStar className="size-8 text-score-star" />
+                <p className="flex items-center gap-1 font-display text-lg font-semibold leading-6 lg:text-2xl lg:leading-8">
+                  <ScoreStar className="size-6 text-score-star lg:size-8" />
                   {t.score}
                 </p>
-                <p className="truncate text-base leading-5">{t.name}</p>
+                <p className="truncate text-sm leading-4 lg:text-base lg:leading-5">{t.name}</p>
               </div>
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-5">
-          <button onClick={editQuiz} aria-label="Редактировать викторину" className="flex size-12 items-center justify-center rounded-2xl bg-secondary hover:bg-muted">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <button onClick={editQuiz} aria-label="Редактировать викторину" className="flex size-10 items-center justify-center rounded-xl bg-secondary hover:bg-muted sm:size-12 sm:rounded-2xl">
             <Pencil className="size-5" />
           </button>
-          <button onClick={() => setFinished(true)} className="flex h-12 items-center gap-2.5 rounded-2xl bg-secondary pl-3.5 pr-[18px] text-sm font-semibold hover:bg-muted">
-            <X className="size-5" /> Завершить
+          <button onClick={() => setFinished(true)} aria-label="Завершить викторину" className="flex size-10 items-center justify-center rounded-xl bg-secondary text-sm font-semibold hover:bg-muted sm:h-12 sm:w-auto sm:gap-2.5 sm:rounded-2xl sm:pl-3.5 sm:pr-[18px]">
+            <X className="size-5" /> <span className="hidden sm:inline">Завершить</span>
           </button>
         </div>
       </header>
@@ -131,12 +131,12 @@ function PlayPage() {
 
       {question && open && (
         <div role="dialog" aria-label={`Вопрос ${open.n}`} className="fixed inset-0 z-40 bg-overlay backdrop-blur-sm">
-          <div className="mx-auto flex h-full w-full max-w-[1438px] flex-col gap-4 px-6 py-6">
-            <div className="flex items-center justify-between gap-4 text-card">
-              <p className="font-display text-2xl font-semibold">Вопрос {open.n} · отвечает «{teams[turn]?.name}»</p>
+          <div className="mx-auto flex h-dvh min-h-0 w-full max-w-[1438px] flex-col gap-2 px-3 py-2 sm:gap-4 sm:px-6 sm:py-4">
+            <div className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-card">
+              <p className="min-w-0 truncate font-display text-lg font-semibold sm:text-2xl">Вопрос {open.n} · отвечает «{teams[turn]?.name}»</p>
               {!picked && (
-                <button onClick={() => setOpen(null)} className="flex h-12 items-center gap-2.5 rounded-2xl bg-card pl-3.5 pr-[18px] text-sm font-semibold text-foreground hover:bg-secondary">
-                  <X className="size-5" /> Закрыть
+                <button onClick={() => setOpen(null)} aria-label="Закрыть вопрос" className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-card text-sm font-semibold text-foreground hover:bg-secondary sm:h-12 sm:w-auto sm:gap-2.5 sm:rounded-2xl sm:pl-3.5 sm:pr-[18px]">
+                  <X className="size-5" /> <span className="hidden sm:inline">Закрыть</span>
                 </button>
               )}
             </div>

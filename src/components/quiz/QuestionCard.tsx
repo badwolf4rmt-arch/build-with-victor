@@ -21,7 +21,7 @@ export function QuestionCard({
   footer?: ReactNode;
 }) {
   return (
-    <div className="relative mt-[27px] min-h-[620px] w-full rounded-[64px] bg-card px-6 py-10 md:px-12">
+    <div className="relative mt-[27px] min-h-[620px] w-full rounded-[40px] bg-card px-6 py-10 sm:rounded-[64px] md:px-12">
       <ScorePlate points={points} className="!absolute -top-[27px] left-1/2 -translate-x-1/2" />
       <div className="grid min-h-[540px] grid-rows-[minmax(180px,1fr)_auto_128px] gap-6 pt-10">
         <div className={cn("grid w-full items-center gap-8", image && "md:grid-cols-2")}>
