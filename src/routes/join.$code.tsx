@@ -206,7 +206,7 @@ function Question(props: {
           reveal={!!picked && props.showFeedback}
           initial={picked ? picked.split(ORDER_SEP) : undefined}
           checkLabel={picked ? "Изменить ответ" : "Ответить"}
-          onCheck={busy || (picked && props.showFeedback) ? undefined : (o, c) => void pick(o.join(ORDER_SEP), c)}
+          onCheck={(o, c) => void pick(o.join(ORDER_SEP), c)}
         />
       )}
       {kind === "input" && (
@@ -216,7 +216,7 @@ function Question(props: {
           reveal={!!picked && props.showFeedback}
           initial={picked ?? undefined}
           checkLabel={picked ? "Изменить ответ" : "Ответить"}
-          onCheck={busy || (picked && props.showFeedback) ? undefined : (a, c) => void pick(a.trim(), c)}
+          onCheck={(a, c) => void pick(a.trim(), c)}
         />
       )}
       <div className={cn("flex flex-col gap-3", kind !== "choice" && "hidden")}>
