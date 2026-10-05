@@ -13,7 +13,7 @@ export class GatewayError extends Error {
 /** Calls OpenRouter chat completions and returns the final text. */
 export type AiFile = { name: string; dataUrl: string };
 
-export async function generateText(system: string, prompt: string, files: AiFile[] = []): Promise<string> {
+export async function generateText(system: string, prompt: string, files: AiFile[] = [], model: string = MODEL): Promise<string> {
   const userContent = files.length
     ? [
         { type: "text", text: prompt },
@@ -34,7 +34,7 @@ export async function generateText(system: string, prompt: string, files: AiFile
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       messages: [
         { role: "system", content: system },
         { role: "user", content: userContent },
