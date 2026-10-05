@@ -1,3 +1,4 @@
+import { compressImage } from "@/lib/image-compress";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, Loader2, Shuffle, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";

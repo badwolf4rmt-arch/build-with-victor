@@ -188,7 +188,7 @@ export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: 
   };
   if (write()) return quiz;
   // storage full — free space from older quizzes' question images first, keeping every cover
-  stored.custom = stored.custom.map((q) => (q.id === quiz.id ? q : { ...q, items: q.items?.map(({ image: _i, ...x }) => x) }));
+  stored.custom = stored.custom.map((q) => (q.id === quiz.id ? q : { ...q, ...(q.items ? { items: q.items.map(({ image: _i, ...x }) => x) } : {}) }));
   if (write()) return quiz;
   // then drop this quiz's question images, and only as a last resort its cover
   quiz.items = items.map(({ image: _img, ...q }) => q);
