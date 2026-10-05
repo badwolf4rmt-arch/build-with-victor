@@ -125,72 +125,50 @@ function PlayPage() {
         </div>
       </header>
 
-      <main
-        className="grid min-h-0 flex-1 gap-4 p-6"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${rows}, minmax(120px, 1fr))` }}
-      >
-        {cells.map((c) => (
-          <button
-            key={c.n}
-            disabled={c.done}
-            onClick={() => setOpen(c)}
-            aria-label={c.done ? `Карточка ${c.n} открыта` : `Карточка ${c.n}`}
-            className={cn(
-              "relative overflow-hidden rounded-[48px] transition-transform",
-              c.done ? "bg-game-card-empty backdrop-blur-md" : "bg-game-card shadow-game-card hover:scale-[1.02]",
-            )}
-          >
-            {!c.done && (
-              <>
-                <CardOrnament className="absolute left-1/2 top-1/2 h-[422px] w-[450px] max-w-none -translate-x-1/2 -translate-y-1/2" />
-                <span className="relative font-display text-[56px] font-semibold leading-none text-primary-foreground lg:text-[80px]">{c.n}</span>
-              </>
-            )}
-          </button>
-        ))}
-      </main>
+      <Board cells={cells} cols={cols} rows={rows} onOpen={setOpen} />
 
-      <Modal
-        open={!!open}
-        onOpenChange={(o) => !o && !picked && setOpen(null)}
-        title={bonus ? `Бонус: ${bonus.name}` : question?.text ?? ""}
-        description={bonus ? bonus.text : `Вопрос ${open?.n ?? ""} · отвечает «${teams[turn]?.name}»`}
-      >
-        {bonus ? (
+      {question && open && (
+        <div role="dialog" aria-label={`Вопрос ${open.n}`} className="fixed inset-0 z-40 overflow-y-auto bg-overlay backdrop-blur-sm">
+          <div className="mx-auto flex min-h-full w-full max-w-[1438px] flex-col justify-center gap-6 px-6 py-10">
+            <div className="flex items-center justify-between gap-4 text-card">
+              <p className="font-display text-2xl font-semibold">Вопрос {open.n} · отвечает «{teams[turn]?.name}»</p>
+              {!picked && (
+                <button onClick={() => setOpen(null)} className="flex h-12 items-center gap-2.5 rounded-2xl bg-card pl-3.5 pr-[18px] text-sm font-semibold text-foreground hover:bg-secondary">
+                  <X className="size-5" /> Закрыть
+                </button>
+              )}
+            </div>
+            <QuestionCard
+              text={question.text}
+              image={question.image}
+              points={QUESTION_POINTS}
+              answers={options.map((opt) => ({
+                t: opt,
+                state: !picked ? "idle" : opt === question.correct ? "correct" : opt === picked ? "wrong" : "dim",
+              }))}
+              onAnswer={picked ? undefined : (i) => setPicked(options[i]!)}
+              footer={
+                picked ? (
+                  <>
+                    <p className="text-center font-display text-xl font-semibold">
+                      {picked === question.correct ? `Верно! +${QUESTION_POINTS} баллов` : "Неверно — правильный ответ выделен зелёным"}
+                    </p>
+                    <GradientButton onClick={() => resolve(picked === question.correct)}>Дальше</GradientButton>
+                  </>
+                ) : null
+              }
+            />
+          </div>
+        </div>
+      )}
+
+      <Modal open={!!bonus} onOpenChange={() => {}} title={bonus ? `Бонус: ${bonus.name}` : ""} description={bonus?.text}>
+        {bonus && (
           <div className="mt-6 flex flex-col items-center gap-6">
             <span className="text-7xl">{bonus.icon}</span>
             <button onClick={() => resolve(null)} className="h-12 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Применить</button>
           </div>
-        ) : question ? (
-          <div className="mt-6 flex flex-col gap-3">
-            {question.image && <img src={question.image} alt="" className="max-h-56 w-full rounded-2xl object-cover" />}
-            {options.map((opt) => {
-              const isCorrect = opt === question.correct;
-              const state = !picked ? "idle" : isCorrect ? "correct" : opt === picked ? "wrong" : "idle";
-              return (
-                <button
-                  key={opt}
-                  disabled={!!picked}
-                  onClick={() => setPicked(opt)}
-                  className={cn(
-                    "min-h-12 rounded-xl border-2 px-4 py-3 text-left text-sm font-medium transition-colors",
-                    state === "correct" && "border-success bg-success-soft",
-                    state === "wrong" && "border-destructive bg-destructive/10",
-                    state === "idle" && "border-border bg-card enabled:hover:bg-secondary",
-                  )}
-                >
-                  {opt}
-                </button>
-              );
-            })}
-            {picked && (
-              <>
-                <p className="text-sm font-semibold">{picked === question.correct ? `Верно! +${QUESTION_POINTS} баллов` : `Неверно. Правильный ответ: ${question.correct}`}</p>
-                <button onClick={() => resolve(picked === question.correct)} className="h-12 rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Дальше</button>
-              </>
-            )}
-          </div>
-        ) : null}
+        )}
       </Modal>
 
       <Modal open={finished} onOpenChange={setFinished} title="Итоги викторины">
