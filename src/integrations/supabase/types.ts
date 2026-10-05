@@ -35,6 +35,125 @@ export type Database = {
         }
         Relationships: []
       }
+      live_answers: {
+        Row: {
+          answer: string
+          correct: boolean
+          created_at: string
+          id: string
+          player_id: string
+          points: number
+          question: number
+          session_code: string
+        }
+        Insert: {
+          answer: string
+          correct: boolean
+          created_at?: string
+          id?: string
+          player_id: string
+          points?: number
+          question: number
+          session_code: string
+        }
+        Update: {
+          answer?: string
+          correct?: boolean
+          created_at?: string
+          id?: string
+          player_id?: string
+          points?: number
+          question?: number
+          session_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_answers_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "live_players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_answers_session_code_fkey"
+            columns: ["session_code"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      live_players: {
+        Row: {
+          id: string
+          joined_at: string
+          name: string
+          score: number
+          session_code: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          name: string
+          score?: number
+          session_code: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          name?: string
+          score?: number
+          session_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_players_session_code_fkey"
+            columns: ["session_code"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      live_sessions: {
+        Row: {
+          code: string
+          created_at: string
+          current: number
+          items: Json
+          mode: string
+          question_started_at: number | null
+          quiz_id: string
+          speed_scoring: boolean
+          state: string
+          title: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          current?: number
+          items?: Json
+          mode?: string
+          question_started_at?: number | null
+          quiz_id: string
+          speed_scoring?: boolean
+          state?: string
+          title?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          current?: number
+          items?: Json
+          mode?: string
+          question_started_at?: number | null
+          quiz_id?: string
+          speed_scoring?: boolean
+          state?: string
+          title?: string
+        }
+        Relationships: []
+      }
       quizzes: {
         Row: {
           cover_url: string | null
