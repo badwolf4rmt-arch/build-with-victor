@@ -178,14 +178,23 @@ export function addQuizToLibrary(title: string, items: DraftQuestion[], image?: 
   const quiz: Quiz = { id: prev?.id ?? id ?? `ai-${Date.now()}`, title, questions: items.length, items, image, mine: true, createdAt: prev?.createdAt ?? Date.now() };
   stored.custom = [quiz, ...(stored.custom ?? []).filter((q) => q.id !== quiz.id)];
   stored.folders ??= SEED_FOLDERS;
-  try {
-    localStorage.setItem(KEY, JSON.stringify(stored));
-  } catch {
-    // storage full — keep the quiz without images
-    quiz.image = undefined;
-    quiz.items = items.map(({ image: _img, ...q }) => q);
-    localStorage.setItem(KEY, JSON.stringify(stored));
-  }
+  const write = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(stored));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  if (write()) return quiz;
+  // storage full — free space from older quizzes' question images first, keeping every cover
+  stored.custom = stored.custom.map((q) => (q.id === quiz.id ? q : { ...q, ...(q.items ? { items: q.items.map(({ image: _i, ...x }) => x) } : {}) }));
+  if (write()) return quiz;
+  // then drop this quiz's question images, and only as a last resort its cover
+  quiz.items = items.map(({ image: _img, ...q }) => q);
+  if (write()) return quiz;
+  quiz.image = undefined;
+  write();
   return quiz;
 }
 

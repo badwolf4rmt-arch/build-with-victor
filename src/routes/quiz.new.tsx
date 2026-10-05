@@ -1,3 +1,4 @@
+import { compressImage } from "@/lib/image-compress";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowUp, Check, Loader2, Shuffle, Download, Eye, Play, ImagePlus, Pencil, Plus, Save, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -63,7 +64,8 @@ function Editor() {
     try {
       const res = await runCover({ data: { prompt, kind: "cover" } });
       if (res.ok) {
-        setQuiz((q) => ({ ...q, cover: res.dataUrl }));
+        const cover = await compressImage(res.dataUrl);
+        setQuiz((q) => ({ ...q, cover }));
         toast.success("Обложка создана");
       } else toast.error(res.error);
     } catch {
@@ -105,7 +107,8 @@ function Editor() {
     const s = addQuizToLibrary(quiz.title.trim(), quiz.questions, quiz.cover, saved?.id);
     setSaved(s);
     if (quiz.id !== s.id) setQuiz((q) => ({ ...q, id: s.id }));
-    toast.success("Викторина сохранена");
+    if (quiz.cover && !s.image) toast.error("Не хватило места в браузере — викторина сохранена без обложки");
+    else toast.success("Викторина сохранена");
   }
 
   return (
@@ -317,7 +320,7 @@ function Editor() {
         cropTitle="Установка обложки"
         cropDescription="Выберите область, которая будет видна на обложке"
         aspect={1278 / 340}
-        onDone={(img) => setQuiz((q) => ({ ...q, cover: img.src }))}
+        onDone={(img) => void compressImage(img.src, 1280).then((cover) => setQuiz((q) => ({ ...q, cover })))}
       />
       <AddImageFlow
         open={imageFor !== null}
