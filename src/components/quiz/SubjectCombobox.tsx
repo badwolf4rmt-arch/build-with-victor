@@ -17,6 +17,12 @@ function highlight(label: string, q: string) {
   );
 }
 
+/** Subjects whose name contains the typed fragment (case-insensitive, ё treated as е). Empty query lists all. */
+export function filterSubjects(query: string): string[] {
+  const q = normalize(query);
+  return q ? SUBJECTS.filter((s) => normalize(s).includes(q)) : [...SUBJECTS];
+}
+
 /** Subject picker: type to filter the list, or keep your own name when it is not in the list. */
 export function SubjectCombobox({
   value,
