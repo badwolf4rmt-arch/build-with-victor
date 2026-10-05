@@ -120,6 +120,7 @@ export type Database = {
       }
       live_sessions: {
         Row: {
+          auto_reveal: boolean
           code: string
           created_at: string
           current: number
@@ -133,6 +134,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          auto_reveal?: boolean
           code: string
           created_at?: string
           current?: number
@@ -146,6 +148,7 @@ export type Database = {
           title?: string
         }
         Update: {
+          auto_reveal?: boolean
           code?: string
           created_at?: string
           current?: number
