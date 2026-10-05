@@ -4,6 +4,7 @@ import { Pencil, X } from "lucide-react";
 import { Modal } from "@/components/quiz/Modal";
 import { CardOrnament, ScoreStar } from "@/components/quiz/GameArt";
 import { GradientButton, QuestionCard } from "@/components/quiz/QuestionCard";
+import { FitToScreen } from "@/components/quiz/FitToScreen";
 import { cn } from "@/lib/utils";
 import { getQuizItems, saveDraft, useQuizStore } from "@/lib/quiz-store";
 import { applyBonus, BONUSES, loadSetup, QUESTION_POINTS, type BonusId, type GameSetup, type Team } from "@/lib/game";
@@ -129,8 +130,8 @@ function PlayPage() {
       <Board cells={cells} cols={cols} rows={rows} onOpen={setOpen} />
 
       {question && open && (
-        <div role="dialog" aria-label={`Вопрос ${open.n}`} className="fixed inset-0 z-40 overflow-y-auto bg-overlay backdrop-blur-sm">
-          <div className="mx-auto flex min-h-full w-full max-w-[1438px] flex-col justify-center gap-6 px-6 py-10">
+        <div role="dialog" aria-label={`Вопрос ${open.n}`} className="fixed inset-0 z-40 bg-overlay backdrop-blur-sm">
+          <div className="mx-auto flex h-full w-full max-w-[1438px] flex-col gap-4 px-6 py-6">
             <div className="flex items-center justify-between gap-4 text-card">
               <p className="font-display text-2xl font-semibold">Вопрос {open.n} · отвечает «{teams[turn]?.name}»</p>
               {!picked && (
@@ -139,6 +140,7 @@ function PlayPage() {
                 </button>
               )}
             </div>
+            <FitToScreen className="flex-1">
             <QuestionCard
               text={question.text}
               image={question.image}
@@ -159,6 +161,7 @@ function PlayPage() {
                 ) : null
               }
             />
+            </FitToScreen>
           </div>
         </div>
       )}
@@ -230,16 +233,17 @@ function Board({ cells, cols, rows, onOpen }: { cells: Cell[]; cols: number; row
               key={c.n}
               disabled={c.done}
               onClick={() => onOpen(c)}
+              style={{ borderRadius: Math.round(size.h * 0.1) }}
               aria-label={c.done ? `Карточка ${c.n} открыта` : `Карточка ${c.n}`}
               className={cn(
-                "relative overflow-hidden rounded-[48px] transition-transform",
+                "relative overflow-hidden transition-transform",
                 c.done ? "bg-game-card-empty backdrop-blur-md" : "bg-game-card shadow-game-card hover:scale-[1.02]",
               )}
             >
               {!c.done && (
                 <>
-                  <CardOrnament className="absolute left-1/2 top-1/2 h-[422px] w-[450px] max-w-none -translate-x-1/2 -translate-y-1/2" />
-                  <span className="relative font-display text-[56px] font-semibold leading-none text-primary-foreground lg:text-[80px]">{c.n}</span>
+                  <CardOrnament className="absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2" style={{ width: size.w * 1.25, height: size.h * 0.91 }} />
+                  <span className="relative font-display font-semibold leading-none text-primary-foreground" style={{ fontSize: Math.round(size.h * 0.17) }}>{c.n}</span>
                 </>
               )}
             </button>

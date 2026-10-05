@@ -17,3 +17,4 @@
 - Lesson files for AI generation are read in `src/lib/material-file.ts`: TXT/DOCX to text in the browser, PDF/images sent to the model as file parts — no file storage needed.
 - Question illustrations: after AI quiz generation, `src/lib/quiz-illustrate.functions.ts` illustrates one question in every consecutive group of three, writes a brief (stage 2) then draws each image (stage 3); spacing/style/no-text rules live in `src/lib/question-illustration.ts` — illustrations are optional and never block quiz creation.
 - Points for a correct answer come from `QUESTION_POINTS` in `src/lib/game.ts`; preview and game board read the same constant — so the preview never promises a different score than the game awards.
+- Game screens fit the viewport without scrolling: the board sizes cards from the free space (Figma card ratio) and the open question is shrunk by `FitToScreen` — classroom screens vary in size.

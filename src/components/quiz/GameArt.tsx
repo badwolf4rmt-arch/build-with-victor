@@ -1,3 +1,4 @@
+import type React from "react";
 /** Vector art from the Figma game screens: score plate, star icon and card ornament. */
 
 export function ScoreStar({ className }: { className?: string }) {
@@ -32,9 +33,9 @@ export function ScorePlate({ points, className }: { points: number; className?: 
 }
 
 /** Thin four-pointed star drawn across an unopened game card. */
-export function CardOrnament({ className }: { className?: string }) {
+export function CardOrnament({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <svg viewBox="0 0 450 422.5" preserveAspectRatio="none" className={className} aria-hidden>
+    <svg viewBox="0 0 450 422.5" preserveAspectRatio="none" className={className} style={style} aria-hidden>
       <path
         d="M52.2137 212C150.5 212 224 275.863 224 383.786V422.5H226V383.786C226 275.569 299.5 212 397.786 212H450V210H397.786C289.422 210 226 136 226 38.2137V0H224V38.2137C224 137 160.137 210 52.2137 210H0V212H52.2137Z"
         className="fill-game-card-line"
