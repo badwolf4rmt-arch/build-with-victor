@@ -233,15 +233,16 @@ function Board({ cells, cols, rows, onOpen }: { cells: Cell[]; cols: number; row
               key={c.n}
               disabled={c.done}
               onClick={() => onOpen(c)}
+              style={{ borderRadius: Math.round(size.h * 0.1) }}
               aria-label={c.done ? `Карточка ${c.n} открыта` : `Карточка ${c.n}`}
               className={cn(
-                "relative overflow-hidden rounded-[48px] transition-transform",
+                "relative overflow-hidden transition-transform",
                 c.done ? "bg-game-card-empty backdrop-blur-md" : "bg-game-card shadow-game-card hover:scale-[1.02]",
               )}
             >
               {!c.done && (
                 <>
-                  <CardOrnament className="absolute left-1/2 top-1/2 h-[422px] w-[450px] max-w-none -translate-x-1/2 -translate-y-1/2" />
+                  <CardOrnament className="absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2" style={{ width: size.w * 1.25, height: size.h * 0.91 }} />
                   <span className="relative font-display font-semibold leading-none text-primary-foreground" style={{ fontSize: Math.round(size.h * 0.17) }}>{c.n}</span>
                 </>
               )}
