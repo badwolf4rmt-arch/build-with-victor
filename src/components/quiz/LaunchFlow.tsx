@@ -283,7 +283,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
               <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {BONUSES.map((b) => (
                   <div key={b.id} className={cn("flex items-center gap-3 rounded-2xl border border-border p-4", singleTeam && "opacity-50")}>
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-secondary text-2xl">{b.icon}</span>
+                    <img src={b.image} alt="" className="size-12 shrink-0 rounded-xl object-contain" />
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-semibold leading-5">{b.name}</p>
                       <p className="mt-1 text-sm leading-[18px] text-muted-foreground">{b.text}</p>

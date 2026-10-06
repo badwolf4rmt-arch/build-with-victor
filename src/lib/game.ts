@@ -1,17 +1,25 @@
+import generosityImg from "@/assets/bonuses/generosity.png.asset.json";
+import likeImg from "@/assets/bonuses/like.png.asset.json";
+import magnetImg from "@/assets/bonuses/magnet.png.asset.json";
+import theftImg from "@/assets/bonuses/theft.png.asset.json";
+import eraserImg from "@/assets/bonuses/eraser.png.asset.json";
+import doubleImg from "@/assets/bonuses/double.png.asset.json";
+import trapImg from "@/assets/bonuses/trap.png.asset.json";
+import rocketImg from "@/assets/bonuses/rocket.png.asset.json";
 import type { QuestionKind } from "./question-kinds";
 export const AVATARS = ["fruit:dragonfruit", "fruit:durian", "fruit:lemon", "fruit:lychee", "fruit:strawberry", "fruit:mangosteen", "fruit:pear"];
 
 export type BonusId = "generosity" | "like" | "magnet" | "theft" | "eraser" | "double" | "trap" | "rocket";
 
-export const BONUSES: { id: BonusId; name: string; text: string; icon: string }[] = [
-  { id: "generosity", name: "Щедрость", text: "Команда отдаёт баллы следующей по порядку", icon: "🎁" },
-  { id: "like", name: "Лайк", text: "Все команды получают по 5 баллов", icon: "👍" },
-  { id: "magnet", name: "Магнит", text: "Команда получает по 5 баллов от других", icon: "🧲" },
-  { id: "theft", name: "Похищение", text: "Баллы всех команд обнуляются", icon: "🦹" },
-  { id: "eraser", name: "Ластик", text: "Команда теряет 15 баллов", icon: "🩹" },
-  { id: "double", name: "Дубль", text: "Баллы команды удваиваются", icon: "✖️" },
-  { id: "trap", name: "Ловушка", text: "Команда переходит на последнее место", icon: "⚠️" },
-  { id: "rocket", name: "Ракета", text: "Команда переходит на первое место", icon: "🚀" },
+export const BONUSES: { id: BonusId; name: string; text: string; icon: string; image: string }[] = [
+  { id: "generosity", name: "Щедрость", text: "Команда отдаёт баллы следующей по порядку", icon: "🎁", image: generosityImg.url },
+  { id: "like", name: "Лайк", text: "Все команды получают по 5 баллов", icon: "👍", image: likeImg.url },
+  { id: "magnet", name: "Магнит", text: "Команда получает по 5 баллов от других", icon: "🧲", image: magnetImg.url },
+  { id: "theft", name: "Похищение", text: "Баллы всех команд обнуляются", icon: "🦹", image: theftImg.url },
+  { id: "eraser", name: "Ластик", text: "Команда теряет 15 баллов", icon: "🩹", image: eraserImg.url },
+  { id: "double", name: "Дубль", text: "Баллы команды удваиваются", icon: "✖️", image: doubleImg.url },
+  { id: "trap", name: "Ловушка", text: "Команда переходит на последнее место", icon: "⚠️", image: trapImg.url },
+  { id: "rocket", name: "Ракета", text: "Команда переходит на первое место", icon: "🚀", image: rocketImg.url },
 ];
 
 export type Team = { name: string; avatar: string; score: number };
