@@ -219,3 +219,4 @@
 @utility answer-true { background-image: linear-gradient(180deg,#c5ffd3,#99f7b5); color:#000; border-color:transparent; }
 @utility answer-true-strong { background-image: linear-gradient(180deg,#1bce63,#2fc26a); color:#fff; border-color:transparent; }
 @utility answer-false { background-image: linear-gradient(180deg,#f86769,#ec4d4f); color:#fff; border-color:transparent; }
+@utility bg-game-card-gradient { background-image: linear-gradient(115.7deg,#50c8ff 20.9%,#96e1ff 92%); box-shadow: inset -4px -4px 40px rgb(90 202 255 / .4), 2px 4px 20px rgb(37 139 202 / .1); }
