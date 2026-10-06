@@ -1,9 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Check, Clock } from "lucide-react";
+import { RichText } from "@/components/quiz/RichText";
+import { AnswerReview } from "@/components/quiz/AnswerReview";
+import { LiveResults } from "@/components/quiz/LiveResults";
+import type { GameQuestion } from "@/lib/game";
 import { cn } from "@/lib/utils";
 import { InputAnswer, OrderAnswer } from "@/components/quiz/AnswerArea";
-import { kindOf, ORDER_SEP, orderSteps } from "@/lib/question-kinds";
-import { answerPoints, joinGame, sessionTeams, teamScores, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LivePlayer } from "@/lib/live";
+import { isInputCorrect, kindOf, ORDER_SEP, orderSteps } from "@/lib/question-kinds";
+import { remainingSeconds, answerPoints, joinGame, sessionTeams, teamScores, optionsFor, submitAnswer, TIME_LIMIT, useLiveGame, type LivePlayer } from "@/lib/live";
 
 export const Route = createFileRoute("/join/$code")({
   head: () => ({
@@ -26,11 +32,15 @@ function JoinPage() {
   const [name, setName] = useState("");
   const [team, setTeam] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selfIndex, setSelfIndex] = useState<number | null>(null);
   const storeKey = `live-player-${code}`;
   useEffect(() => setPlayerId(localStorage.getItem(storeKey)), [storeKey]);
 
   const me = players.find((p) => p.id === playerId);
   const myAnswers = answers.filter((a) => a.player_id === playerId);
+  useEffect(() => {
+    if (session?.mode === "self" && me && selfIndex === null) setSelfIndex(myAnswers.length);
+  }, [session?.mode, me, selfIndex, myAnswers.length]);
 
   const shell = (children: React.ReactNode) => (
     <div className="flex min-h-screen flex-col items-center justify-center bg-secondary p-4">
@@ -96,37 +106,16 @@ function JoinPage() {
 
   if (session.state === "lobby") return shell(<>{header}<p className="py-8 text-center font-display text-xl font-semibold">Вы в игре! Ждём, когда учитель начнёт</p></>);
 
-  if (session.state === "finished" || (session.mode === "self" && myAnswers.length >= total)) {
-    const place = [...players].sort((a, b) => b.score - a.score).findIndex((p) => p.id === me.id) + 1;
-    return shell(
-      <>
-        {header}
-        <p className="text-center font-display text-3xl font-semibold">Готово!</p>
-        <p className="mt-2 text-center">Верных ответов: {myAnswers.filter((a) => a.correct).length} из {total}</p>
-        <p className="mt-1 text-center">Баллы: {me.score}{session.state === "finished" && !me.team ? ` · место ${place}` : ""}</p>
-        {me.team && session.state === "finished" && (
-          <p className="mt-1 text-center">Команда «{me.team}» · место {teamScores(teams, players).findIndex((t) => t.name === me.team) + 1}</p>
-        )}
-      </>,
-    );
+  if (session.state === "finished" || (session.mode === "self" && (selfIndex ?? myAnswers.length) >= total)) {
+    return <div className="min-h-screen bg-secondary p-4 sm:p-8"><div className="mx-auto max-w-[1100px] rounded-[32px] bg-card p-5 sm:p-8">
+      <LiveResults title={session.title} cover={session.cover_url} players={players} answers={answers} total={total} playerId={me.id} teams={teams} finished={session.state === "finished"} />
+    </div></div>;
   }
 
-  const index = session.mode === "sync" ? session.current : myAnswers.length;
+  const index = session.mode === "sync" ? session.current : (selfIndex ?? myAnswers.length);
   const q = session.items[index];
   if (!q) return shell(<p className="text-center">Ждём следующий вопрос…</p>);
   const done = myAnswers.find((a) => a.question === index);
-
-  if (session.state === "reveal") {
-    return shell(
-      <>
-        {header}
-        <p className="py-8 text-center font-display text-2xl font-semibold">
-          {!done ? "Время вышло" : done.correct ? `Верно! +${done.points}` : "Неверно"}
-        </p>
-        <p className="text-center text-muted-foreground">Правильный ответ: {kindOf(q) === "order" ? orderSteps(q).join(ORDER_SEP) : q.correct}</p>
-      </>,
-    );
-  }
 
   return shell(
     <>
@@ -142,108 +131,79 @@ function JoinPage() {
         startedAt={session.mode === "sync" ? (session.question_started_at ?? Date.now()) : null}
         showFeedback={session.mode === "self" && session.auto_reveal}
         initialAnswer={done?.answer}
+        revealed={session.state === "reveal"}
+        showExplanation={session.show_explanations}
+        selfPaced={session.mode === "self"}
+        onNext={() => setSelfIndex(index + 1)}
       />
     </>
   );
 }
 
-function Question(props: {
-  code: string;
-  player: LivePlayer;
-  index: number;
-  total: number;
-  q: { text: string; correct: string; incorrect: string[]; image?: string | undefined; kind?: "choice" | "order" | "input" | undefined };
-  speed: boolean;
-  startedAt: number | null;
-  showFeedback: boolean;
-  initialAnswer: string | undefined;
+export function Question(props: {
+  code: string; player: LivePlayer; index: number; total: number; q: GameQuestion;
+  speed: boolean; startedAt: number | null; showFeedback: boolean; initialAnswer: string | undefined;
+  revealed: boolean; showExplanation: boolean; selfPaced: boolean; onNext: () => void;
 }) {
   const { q, index } = props;
   const options = useMemo(() => optionsFor(q, index), [q, index]);
   const shownAt = useRef(Date.now());
+  const [now, setNow] = useState(Date.now());
+  const [draftChoice, setDraftChoice] = useState(props.initialAnswer ?? "");
   const [picked, setPicked] = useState<string | null>(props.initialAnswer ?? null);
   const [points, setPoints] = useState(0);
   const [busy, setBusy] = useState(false);
-
+  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState(false);
   const [ok, setOk] = useState(false);
   const kind = kindOf(q);
-  const pick = async (o: string, isCorrect?: boolean) => {
-    if (busy || (picked && props.showFeedback)) return;
-    setPicked(o);
-    setBusy(true);
-    const elapsed = Date.now() - (props.startedAt ?? shownAt.current);
-    const correct = isCorrect ?? o === q.correct;
-    setOk(correct);
-    const pts = answerPoints(correct, props.speed, elapsed);
-    setPoints(pts);
-    
-    const send = () => void submitAnswer({ code: props.code, player: props.player, question: index, answer: o, correct, points: pts });
-    
-    if (props.showFeedback) {
-      setTimeout(() => {
-        send();
-        setBusy(false);
-      }, 1500);
-    } else {
-      await submitAnswer({ code: props.code, player: props.player, question: index, answer: o, correct, points: pts });
-      setBusy(false);
-    }
-  };
+  const reveal = props.revealed || feedback;
+  const reviewedCorrect = props.revealed
+    ? kind === "input" ? isInputCorrect(picked ?? "", q.correct) : kind === "order" ? picked === orderSteps(q).join(ORDER_SEP) : picked === q.correct
+    : ok;
+  const left = remainingSeconds(props.startedAt, now);
+  const locked = busy || reveal || left === 0;
+  useEffect(() => {
+    if (props.startedAt === null || reveal) return;
+    const timer = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(timer);
+  }, [props.startedAt, reveal]);
 
-  return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted-foreground flex justify-between">
-        <span>Вопрос {index + 1} из {props.total}{props.startedAt ? ` · ${TIME_LIMIT} с` : ""}</span>
-        {picked && !props.showFeedback && <span className="text-primary font-semibold">Ответ сохранён</span>}
-      </p>
-      <p className="font-display text-xl font-semibold leading-7">{q.text}</p>
-      {q.image && <img src={q.image} alt="" className="aspect-[3/2] w-full rounded-2xl object-cover" />}
-      {kind === "order" && (
-        <OrderAnswer
-          steps={orderSteps(q)}
-          seed={index}
-          size="sm"
-          reveal={!!picked && props.showFeedback}
-          initial={picked ? picked.split(ORDER_SEP) : undefined}
-          checkLabel={picked ? "Изменить ответ" : "Ответить"}
-          onCheck={(o, c) => void pick(o.join(ORDER_SEP), c)}
-        />
-      )}
-      {kind === "input" && (
-        <InputAnswer
-          correct={q.correct}
-          size="sm"
-          reveal={!!picked && props.showFeedback}
-          initial={picked ?? undefined}
-          checkLabel={picked ? "Изменить ответ" : "Ответить"}
-          onCheck={(a, c) => void pick(a.trim(), c)}
-        />
-      )}
-      <div className={cn("flex flex-col gap-3", kind !== "choice" && "hidden")}>
-        {options.map((o) => {
-          const state = !picked || !props.showFeedback ? (picked === o ? "picked" : "idle") : o === q.correct ? "correct" : o === picked ? "wrong" : "dim";
-          return (
-            <button
-              key={o}
-              disabled={busy || (!!picked && props.showFeedback)}
-              onClick={() => pick(o)}
-              className={cn(
-                "min-h-14 rounded-2xl border-2 p-3 text-left text-base font-semibold transition-colors",
-                state === "idle" && "border-answer-border hover:bg-info",
-                state === "picked" && "border-primary bg-primary text-primary-foreground",
-                state === "correct" && "border-success bg-success text-success-foreground",
-                state === "wrong" && "border-destructive bg-destructive text-destructive-foreground",
-                state === "dim" && "border-muted text-muted-foreground",
-              )}
-            >
-              {o}
-            </button>
-          );
-        })}
-      </div>
-      {picked && props.showFeedback && (
-        <p className="text-center font-display text-lg font-semibold">{ok ? `Верно! +${points}` : "Неверно"}</p>
-      )}
+  const send = async (answer: string, correct: boolean) => {
+    if (locked) return;
+    setBusy(true); setError("");
+    const pts = answerPoints(correct, props.speed, Date.now() - (props.startedAt ?? shownAt.current));
+    try {
+      const saved = await submitAnswer({ code: props.code, player: props.player, question: index, answer, correct, points: pts });
+      if (!saved) { setError("Ответ не сохранён. Попробуйте ещё раз."); return; }
+      setPicked(answer); setOk(correct); setPoints(pts);
+      if (props.showFeedback) setFeedback(true);
+    } catch { setError("Не удалось отправить ответ. Проверьте соединение."); }
+    finally { setBusy(false); }
+  };
+  const label = busy ? "Отправляем…" : picked ? "Изменить ответ" : "Ответить";
+  return <div className="flex flex-col gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+      <span>Вопрос {index + 1} из {props.total}</span>
+      {left !== null && !reveal && <span role="timer" className={cn("flex items-center gap-1 font-semibold tabular-nums", left <= 5 ? "text-destructive" : "text-primary")}><Clock className="size-4" />{left} с</span>}
     </div>
-  );
+    <RichText text={q.text} className="font-display text-xl font-semibold leading-7" />
+    {q.image && <img src={q.image} alt="" className="aspect-[3/2] w-full rounded-2xl object-cover" />}
+    {reveal ? <>
+      <p className={cn("font-display text-xl font-semibold", reviewedCorrect ? "text-success" : "text-destructive")}>
+        {!picked ? "Нет ответа" : reviewedCorrect ? "Верно!" : "Неверно"}{feedback && ok ? ` · +${points}` : ""}
+      </p>
+      <AnswerReview q={q} index={index} answer={picked ?? undefined} correct={reviewedCorrect} showExplanation={props.showExplanation} />
+    </> : <>
+      {kind === "order" && <OrderAnswer steps={orderSteps(q)} seed={index} size="sm" reveal={false} initial={picked ? picked.split(ORDER_SEP) : undefined} disabled={locked} checkLabel={label} onCheck={(o,c) => void send(o.join(ORDER_SEP),c)} />}
+      {kind === "input" && <InputAnswer correct={q.correct} size="sm" reveal={false} initial={picked ?? undefined} disabled={locked} checkLabel={label} onCheck={(a,c) => void send(a.trim(),c)} />}
+      {kind === "choice" && <><div className="flex flex-col gap-3">{options.map((o) => <Button key={o} variant="outline" disabled={locked} aria-pressed={draftChoice === o} onClick={() => setDraftChoice(o)} className={cn("h-auto min-h-14 justify-start whitespace-normal rounded-2xl border-2 p-3 text-left text-base font-semibold", draftChoice === o ? "border-primary bg-primary text-primary-foreground" : "border-answer-border")}><RichText text={o} className="flex-1" />{draftChoice === o && <Check className="size-5 shrink-0" />}</Button>)}</div>
+      <Button disabled={locked || !draftChoice} onClick={() => void send(draftChoice, draftChoice === q.correct)} className="h-auto min-h-14 whitespace-normal rounded-2xl text-base font-semibold">{label}</Button></>}
+      {picked && <p role="status" className="text-sm text-primary">Ответ сохранён{left === 0 ? ". Время вышло — ждём учителя." : props.selfPaced ? ". Можно изменить до перехода дальше." : ". Можно изменить, пока вопрос открыт."}</p>}
+      {left === 0 && !picked && <p role="status" className="text-sm text-muted-foreground">Время вышло. Ждём учителя.</p>}
+    </>}
+    {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    {props.selfPaced && picked && <Button onClick={props.onNext} className="h-auto min-h-14 whitespace-normal rounded-2xl text-base font-semibold">{index + 1 < props.total ? "Следующий вопрос" : "Посмотреть итоги"}</Button>}
+    {props.revealed && <p className="text-sm text-muted-foreground">Ждём следующий вопрос от учителя</p>}
+  </div>;
 }

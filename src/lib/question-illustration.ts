@@ -51,7 +51,7 @@ export function buildImagePrompt(brief: {
     brief.mustShow.length ? `Must show: ${brief.mustShow.join("; ")}` : "",
     brief.mustNotShow.length ? `Must NOT show: ${brief.mustNotShow.join("; ")}` : "",
     `Artistic request: ${brief.imageRequest}`,
-    "IMPORTANT: the picture must help understand the question but must NOT reveal or depict the correct answer.",
+    "IMPORTANT: the picture must help understand the question but must NOT reveal or depict the correct answer. No mathematical expressions, digits (including a decorative zero), letter-like shapes, counts that encode the answer, or visual solution steps. Use only neutral subject context when a meaningful scene could disclose the answer.",
     `ILLUSTRATION_STYLE_LOCK_MARKER\n${ILLUSTRATION_STYLE}`,
     ILLUSTRATION_NO_TEXT,
   ]

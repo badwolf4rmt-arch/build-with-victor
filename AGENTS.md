@@ -20,3 +20,7 @@
 - Game screens fit the viewport without scrolling: the board sizes cards from the free space (Figma card ratio) and the open question is shrunk by `FitToScreen` — classroom screens vary in size.
 - Live play by QR (Kahoot-like): `src/lib/live.ts` + public tables `live_sessions`/`live_players`/`live_answers` with realtime; teacher screen `/host/$code`, students `/join/$code` (name only); a student's answer is upserted and remains editable only until the correct answer is revealed; pace and speed scoring are teacher options in launch advanced settings — no student accounts needed.
 - Question mechanics live in `src/lib/question-kinds.ts` (`kind` on each question; "order" stores the correct sequence as [correct, ...incorrect]; answer checks shared by board, preview, QR and print) and UI in `src/components/quiz/AnswerArea.tsx` — one source of truth for every play surface.
+- Card text uses the shared safe Markdown/KaTeX renderer `RichText`; raw HTML is disabled so teacher-authored text cannot execute scripts.
+- QR answer review and standings use shared `AnswerReview` and `LiveResults`; self-paced advancement is explicit so feedback stays visible until the student continues.
+- Live sessions snapshot the cover and explanation visibility at launch; explanations stay inside question JSON so library persistence preserves them without a separate table.
+- Generated question images pass a vision safety check before attachment, with one neutral retry and omission on failure; prompting alone cannot reliably prevent answer leaks.

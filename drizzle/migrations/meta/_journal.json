@@ -43,6 +43,13 @@
       "when": 1791209479256,
       "tag": "0005_live_auto_reveal",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791269622255,
+      "tag": "0006_live_feedback_options",
+      "breakpoints": true
     }
   ]
 }

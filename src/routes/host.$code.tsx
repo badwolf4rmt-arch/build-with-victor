@@ -9,6 +9,9 @@ import { kindOf, orderSteps } from "@/lib/question-kinds";
 import { optionsFor, sessionTeams, teamScores, TIME_LIMIT, updateSession, useLiveGame, type LiveAnswer, type LivePlayer } from "@/lib/live";
 import { QUESTION_POINTS } from "@/lib/game";
 import bg from "@/assets/game-bg.jpg";
+import { LiveResults } from "@/components/quiz/LiveResults";
+import { RichText } from "@/components/quiz/RichText";
+import type { GameQuestion } from "@/lib/game";
 
 export const Route = createFileRoute("/host/$code")({
   head: () => ({
@@ -55,7 +58,7 @@ function HostPage() {
   // Sync mode: reveal automatically when time is up or everyone answered.
   useEffect(() => {
     if (!session || session.mode !== "sync" || session.state !== "question" || !session.auto_reveal) return;
-    if (left === 0 || (players.length > 0 && currentAnswers.length >= players.length)) void updateSession(code, { state: "reveal" });
+    if (left === 0) void updateSession(code, { state: "reveal" });
   }, [session, left, players.length, currentAnswers.length, code]);
 
   if (session === undefined) return null;
@@ -123,7 +126,8 @@ function HostPage() {
           <SyncQuestion
             index={current}
             total={total}
-            q={session.items[current]!}
+            q={session.items[current] as GameQuestion}
+            showExplanation={session.show_explanations}
             reveal={session.state === "reveal"}
             left={left}
             answered={currentAnswers.length}
@@ -141,9 +145,7 @@ function HostPage() {
 
         {session.state === "finished" && (
           <div className="mx-auto w-full max-w-[1100px]">
-            <p className="mb-4 text-center font-display text-4xl font-semibold text-card">Итоги</p>
-            {teams.length > 0 && <TeamTable teams={teams} />}
-            <ResultsTable players={ranking} answers={answers} total={total} />
+            <div className="rounded-[32px] bg-card p-6"><LiveResults title={session.title} cover={session.cover_url} players={ranking} answers={answers} total={total} teams={sessionTeams(session)} /></div>
           </div>
         )}
       </main>
@@ -154,7 +156,8 @@ function HostPage() {
 function SyncQuestion(props: {
   index: number;
   total: number;
-  q: { text: string; correct: string; incorrect: string[]; image?: string | undefined; kind?: "choice" | "order" | "input" | undefined };
+  q: GameQuestion;
+  showExplanation: boolean;
   reveal: boolean;
   left: number;
   answered: number;
@@ -193,6 +196,7 @@ function SyncQuestion(props: {
           footer={
             reveal ? (
               <>
+                {props.showExplanation && q.explanation && <RichText text={q.explanation} className="text-center text-lg" />}
                 <div className="flex flex-wrap justify-center gap-2">
                   {props.teams.length > 0 ? props.teams.map((t, i) => (
                     <span key={t.name} className="rounded-full bg-secondary px-4 py-2 font-semibold">{i + 1}. {t.name} — {t.score}</span>

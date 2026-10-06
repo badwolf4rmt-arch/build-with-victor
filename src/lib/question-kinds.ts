@@ -33,7 +33,11 @@ export const isOrderCorrect = (answer: string[], steps: string[]) => answer.leng
 
 /** Typed answers match ignoring case, ё/е, extra spaces and end punctuation. */
 export function normalizeAnswer(s: string) {
-  return s.toLowerCase().replace(/ё/g, "е").replace(/[.,!?;:«»"']/g, "").replace(/\s+/g, " ").trim();
+  return s.replace(/\\[()[\]]/g, "").replace(/\$/g, "").replace(/\*\*|__/g, "")
+    .replace(/\\(?:dfrac|tfrac|frac)\{([^{}]+)\}\{([^{}]+)\}/g, "$1/$2")
+    .replace(/\\(?:text|mathrm|mathbf)\{([^{}]+)\}/g, "$1")
+    .replace(/\\(?:left|right)/g, "").replace(/\^\{([^{}]+)\}/g, "^$1")
+    .toLowerCase().replace(/ё/g, "е").replace(/[.,!?;:«»"']/g, "").replace(/\s+/g, " ").trim();
 }
 export const isInputCorrect = (answer: string, correct: string) => !!normalizeAnswer(answer) && normalizeAnswer(answer) === normalizeAnswer(correct);
 

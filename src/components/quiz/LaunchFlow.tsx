@@ -90,19 +90,20 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
   const [liveMode, setLiveMode] = useState<LiveMode>("sync");
   const [speed, setSpeed] = useState(true);
   const [autoReveal, setAutoReveal] = useState(true);
+  const [showExplanations, setShowExplanations] = useState(false);
   const [creating, setCreating] = useState(false);
   const all = bonuses.length === BONUSES.length;
   const singleTeam = who === "solo";
   const teamNames = () => Array.from({ length: count }, (_, i) => names[i]!.trim() || `Команда ${i + 1}`);
 
   const toggle = (id: BonusId, on: boolean) => setBonuses((b) => (on ? [...b, id] : b.filter((x) => x !== id)));
-  const gameItems = () => getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src, kind: it.kind }));
+  const gameItems = () => getQuizItems(quiz).map((it) => ({ text: it.text, correct: it.correct, incorrect: it.incorrect.filter((x) => x.trim()), image: it.image?.src, kind: it.kind, explanation: it.explanation }));
 
   const start = async () => {
     if (way === "qr") {
       setCreating(true);
       try {
-        const code = await createLiveSession({ quizId: quiz.id, title: quiz.title, items: gameItems(), mode: liveMode, speedScoring: speed, teams: singleTeam ? [] : teamNames(), autoReveal });
+        const code = await createLiveSession({ quizId: quiz.id, title: quiz.title, items: gameItems(), mode: liveMode, speedScoring: speed, teams: singleTeam ? [] : teamNames(), autoReveal, showExplanations, cover: quiz.image });
         void navigate({ to: "/host/$code", params: { code } });
       } catch {
         toast.error("Не удалось создать игру. Проверьте интернет и попробуйте ещё раз.");
@@ -256,6 +257,10 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                         <span className="block text-sm text-muted-foreground">Включено — ответ показывается сразу после вопроса; выключено — только по кнопке учителя</span>
                       </span>
                       <Switch checked={autoReveal} onCheckedChange={setAutoReveal} />
+                    </label>
+                    <label className="flex items-center justify-between gap-6">
+                      <span className="text-base font-semibold">Показать комментарии к правильным ответам</span>
+                      <Switch checked={showExplanations} onCheckedChange={setShowExplanations} />
                     </label>
                   </div>
                 )}

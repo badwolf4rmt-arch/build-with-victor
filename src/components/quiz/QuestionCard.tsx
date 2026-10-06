@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ScorePlate } from "./GameArt";
+import { RichText } from "./RichText";
+import { Button } from "@/components/ui/button";
 
 export type AnswerState = "idle" | "correct" | "wrong" | "dim";
 
@@ -28,26 +30,26 @@ export function QuestionCard({
       <ScorePlate points={points} className="!absolute -top-[27px] left-1/2 -translate-x-1/2" />
       <div className="grid min-h-[540px] grid-rows-[minmax(180px,1fr)_auto_128px] gap-6 pt-10">
         <div className={cn("grid w-full items-center gap-8", image && "md:grid-cols-2")}>
-          <h2 className="text-center font-display text-[28px] font-semibold leading-9 md:text-[40px] md:leading-[48px]">{text || "Текст вопроса"}</h2>
+          <RichText text={text || "Текст вопроса"} className="text-center font-display text-[28px] font-semibold leading-9 md:text-[40px] md:leading-[48px]" />
           {image && <img src={image} alt="" className="aspect-[3/2] w-full rounded-3xl object-cover" />}
         </div>
         {body ?? <div className="grid w-full gap-4 md:grid-cols-2">
           {answers.map((a, i) => (
-            <button
+            <Button variant="ghost"
               key={i}
               type="button"
               disabled={!onAnswer}
               onClick={() => onAnswer?.(i)}
               className={cn(
-                "flex min-h-20 items-center justify-center rounded-[24px] border-2 p-3 text-center font-display text-xl font-semibold leading-6 transition-colors disabled:cursor-default",
+                "flex h-auto min-h-20 whitespace-normal items-center justify-center rounded-[24px] border-2 p-3 text-center font-display text-xl font-semibold leading-6 transition-colors disabled:cursor-default disabled:opacity-100",
                 a.state === "idle" && "border-answer-border enabled:hover:bg-info",
                 a.state === "correct" && "border-success bg-success text-success-foreground",
                 a.state === "wrong" && "border-destructive bg-destructive text-destructive-foreground",
                 a.state === "dim" && "border-muted text-muted-foreground",
               )}
             >
-              {a.t || "Вариант ответа"}
-            </button>
+              <RichText text={a.t || "Вариант ответа"} />
+            </Button>
           ))}
         </div>}
         <div className="flex min-h-32 w-full flex-col justify-end gap-4">
@@ -60,8 +62,8 @@ export function QuestionCard({
 
 export function GradientButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="bg-action-gradient flex h-20 items-center justify-center rounded-[24px] p-6 font-display text-xl font-semibold text-primary-foreground hover:opacity-95">
+    <Button onClick={onClick} className="bg-action-gradient flex h-auto min-h-20 whitespace-normal items-center justify-center rounded-[24px] p-6 font-display text-xl font-semibold text-primary-foreground hover:opacity-95">
       {children}
-    </button>
+    </Button>
   );
 }

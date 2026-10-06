@@ -15,7 +15,7 @@ export const BONUSES: { id: BonusId; name: string; text: string; icon: string }[
 ];
 
 export type Team = { name: string; avatar: string; score: number };
-export type GameQuestion = { text: string; correct: string; incorrect: string[]; image?: string | undefined; kind?: QuestionKind | undefined };
+export type GameQuestion = { text: string; correct: string; incorrect: string[]; image?: string | undefined; kind?: QuestionKind | undefined; explanation?: string | undefined };
 export type GameSetup = { quizId: string; title: string; questions: number; items: GameQuestion[]; teams: Team[]; bonuses: BonusId[] };
 
 const KEY = "quiz-game-setup";

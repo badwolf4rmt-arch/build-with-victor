@@ -43,7 +43,7 @@ export function CompleteQuizModal({ open, onOpenChange, quiz, onApply }: { open:
       });
       // drop completely empty placeholder questions before appending
       const kept = questions.filter((q) => !blank(q.text) || !blank(q.correct) || q.image);
-      onApply({ ...quiz, questions: [...kept, ...res.added.map((a) => ({ text: a.text, correct: a.correct, incorrect: a.incorrect.slice(0, 3) }))] });
+      onApply({ ...quiz, questions: [...kept, ...res.added.map((a) => ({ ...a, incorrect: a.incorrect.slice(0, 3) }))] });
       onOpenChange(false);
     } catch {
       setError("Не удалось дополнить викторину");
