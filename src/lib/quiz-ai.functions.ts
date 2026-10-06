@@ -245,7 +245,8 @@ export const completeQuiz = createServerFn({ method: "POST" })
       DISTRACTOR_RULES +
       "У каждого вопроса ровно 3 неправильных варианта. Вопрос до 100 символов, варианты короткие. Язык — русский. " +
       "Отвечай только JSON без markdown: " +
-      '{"filled": [{"index": number, "text": string, "correct": string, "incorrect": [string,string,string]}], "added": [{"text": string, "correct": string, "incorrect": [string,string,string]}]}. ' +
+      '{"filled": [{"index": number, "text": string, "correct": string, "incorrect": [string,string,string]}], "added": [{"text": string, "correct": string, "incorrect": [string,string,string], "explanation": string}]}. ' +
+      "Для новых вопросов explanation — короткое объяснение правильного ответа. Математические формулы в строках заключай в $...$. " +
       "В filled включай только вопросы, где были пустые поля, index — номер из входных данных.";
     const prompt =
       `Название викторины: ${data.title}\nДобавить новых вопросов: ${data.add}\n\nТекущие вопросы (JSON):\n` +

@@ -193,7 +193,7 @@ export function Question(props: {
       <p className={cn("font-display text-xl font-semibold", reviewedCorrect ? "text-success" : "text-destructive")}>
         {!picked ? "Нет ответа" : reviewedCorrect ? "Верно!" : "Неверно"}{feedback && ok ? ` · +${points}` : ""}
       </p>
-      <AnswerReview q={q} answer={picked ?? undefined} correct={reviewedCorrect} showExplanation={props.showExplanation} />
+      <AnswerReview q={q} index={index} answer={picked ?? undefined} correct={reviewedCorrect} showExplanation={props.showExplanation} />
     </> : <>
       {kind === "order" && <OrderAnswer steps={orderSteps(q)} seed={index} size="sm" reveal={false} initial={picked ? picked.split(ORDER_SEP) : undefined} disabled={locked} checkLabel={label} onCheck={(o,c) => void send(o.join(ORDER_SEP),c)} />}
       {kind === "input" && <InputAnswer correct={q.correct} size="sm" reveal={false} initial={picked ?? undefined} disabled={locked} checkLabel={label} onCheck={(a,c) => void send(a.trim(),c)} />}

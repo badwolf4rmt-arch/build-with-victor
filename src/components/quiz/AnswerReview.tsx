@@ -3,11 +3,12 @@ import type { GameQuestion } from "@/lib/game";
 import { kindOf, ORDER_SEP, orderSteps } from "@/lib/question-kinds";
 import { cn } from "@/lib/utils";
 import { RichText } from "./RichText";
+import { optionsFor } from "@/lib/live";
 
-export function AnswerReview({ q, answer, correct, showExplanation = false }: { q: GameQuestion; answer?: string | undefined; correct: boolean; showExplanation?: boolean }) {
+export function AnswerReview({ q, answer, correct, showExplanation = false, index = 0 }: { q: GameQuestion; answer?: string | undefined; correct: boolean; showExplanation?: boolean; index?: number }) {
   const kind = kindOf(q);
   const expected = kind === "order" ? orderSteps(q) : [q.correct];
-  const choices = kind === "choice" ? [q.correct, ...q.incorrect.filter(Boolean)] : expected;
+  const choices = kind === "choice" ? optionsFor(q, index) : expected;
   return <div className="flex flex-col gap-3">
     {answer && !correct && <div className="rounded-2xl border-2 border-destructive p-3">
       <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-destructive"><X className="size-4" /> Ваш ответ</p>
