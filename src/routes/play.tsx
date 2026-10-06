@@ -180,7 +180,7 @@ function PlayPage() {
       <Modal open={!!bonus} onOpenChange={() => {}} title={bonus ? `Бонус: ${bonus.name}` : ""} description={bonus?.text ?? ""}>
         {bonus && (
           <div className="mt-6 flex flex-col items-center gap-6">
-            <span className="text-7xl">{bonus.icon}</span>
+            <img src={bonus.image} alt={bonus.name} className="size-28 rounded-3xl object-contain" />
             <button onClick={() => resolve(null)} className="h-12 w-full rounded-xl bg-primary text-sm font-semibold text-primary-foreground">Применить</button>
           </div>
         )}
