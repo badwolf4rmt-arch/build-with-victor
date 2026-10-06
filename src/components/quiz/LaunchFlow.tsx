@@ -178,12 +178,12 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                     <p className="text-xl font-semibold leading-6">Сколько команд участвует?</p>
                     <p className="mt-2 text-sm text-muted-foreground">Не забудьте придумать им названия</p>
                   </div>
-                  <div className="mt-1.5 flex gap-1">
+                  <div className="mt-1.5 flex gap-2">
                     {[2, 3, 4, 5].map((n) => (
                       <button
                         key={n}
                         onClick={() => setCount(n)}
-                        className={cn("size-11 rounded-xl text-base font-semibold transition-colors", n === count ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted")}
+                        className={cn("size-11 rounded-[10px] text-base font-semibold leading-6 transition-colors", n === count ? "bg-primary text-primary-foreground" : "bg-secondary hover:bg-muted")}
                       >
                         {n}
                       </button>
