@@ -122,12 +122,14 @@ export type Database = {
         Row: {
           auto_reveal: boolean
           code: string
+          cover_url: string | null
           created_at: string
           current: number
           items: Json
           mode: string
           question_started_at: number | null
           quiz_id: string
+          show_explanations: boolean
           speed_scoring: boolean
           state: string
           teams: Json
@@ -136,12 +138,14 @@ export type Database = {
         Insert: {
           auto_reveal?: boolean
           code: string
+          cover_url?: string | null
           created_at?: string
           current?: number
           items?: Json
           mode?: string
           question_started_at?: number | null
           quiz_id: string
+          show_explanations?: boolean
           speed_scoring?: boolean
           state?: string
           teams?: Json
@@ -150,12 +154,14 @@ export type Database = {
         Update: {
           auto_reveal?: boolean
           code?: string
+          cover_url?: string | null
           created_at?: string
           current?: number
           items?: Json
           mode?: string
           question_started_at?: number | null
           quiz_id?: string
+          show_explanations?: boolean
           speed_scoring?: boolean
           state?: string
           teams?: Json
