@@ -243,7 +243,7 @@ export function useQuizStore() {
     [state.folders],
   );
 
-  return { ...state, createFolder, updateFolder, deleteFolder, deleteQuiz };
+  return { ...state, loaded, createFolder, updateFolder, deleteFolder, deleteQuiz };
 }
 
 export function pluralQuestions(n: number) {
