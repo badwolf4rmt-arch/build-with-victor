@@ -27,7 +27,7 @@ export function PreviewOverlay({
   launchLabel?: string;
 }) {
   const [active, setActive] = useState(0);
-  const [reveal, setReveal] = useState(false);
+  const [reveal, setReveal] = useState(true);
   const [showAnswers, setShowAnswers] = useState(true);
   const scroller = useRef<HTMLDivElement>(null);
   const q = items[active];
@@ -50,12 +50,12 @@ export function PreviewOverlay({
     const n = active + d;
     if (n < 0 || n >= items.length) return;
     setActive(n);
-    setReveal(false);
+    setReveal(showAnswers);
   }
 
   function pick(i: number) {
     setActive(i);
-    setReveal(false);
+    setReveal(showAnswers);
     scroller.current?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -123,7 +123,7 @@ export function PreviewOverlay({
           <div className="flex items-center justify-between gap-4">
             <h2 className="font-display text-2xl font-semibold leading-8">Вопросы</h2>
             <label className="flex items-center gap-3 text-base">
-              <Switch checked={showAnswers} onCheckedChange={setShowAnswers} />
+              <Switch checked={showAnswers} onCheckedChange={(v) => { setShowAnswers(v); setReveal(v); }} />
               Показать правильные ответы
             </label>
           </div>
