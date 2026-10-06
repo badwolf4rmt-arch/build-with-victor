@@ -85,6 +85,7 @@ export type Database = {
       }
       live_players: {
         Row: {
+          avatar: string | null
           id: string
           joined_at: string
           name: string
@@ -93,6 +94,7 @@ export type Database = {
           team: string | null
         }
         Insert: {
+          avatar?: string | null
           id?: string
           joined_at?: string
           name: string
@@ -101,6 +103,7 @@ export type Database = {
           team?: string | null
         }
         Update: {
+          avatar?: string | null
           id?: string
           joined_at?: string
           name?: string
