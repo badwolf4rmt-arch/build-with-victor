@@ -42,10 +42,10 @@ export function QuestionCard({
               onClick={() => onAnswer?.(i)}
               className={cn(
                 "flex h-auto min-h-20 whitespace-normal items-center justify-center rounded-[24px] border-2 p-3 text-center font-display text-xl font-semibold leading-6 transition-colors disabled:cursor-default disabled:opacity-100",
-                a.state === "idle" && "border-answer-border enabled:hover:bg-info",
-                a.state === "correct" && "border-success bg-success text-success-foreground",
-                a.state === "wrong" && "border-destructive bg-destructive text-destructive-foreground",
-                a.state === "dim" && "border-muted text-muted-foreground",
+                a.state === "idle" && "answer-standard enabled:hover:answer-hover",
+                a.state === "correct" && "answer-true-strong",
+                a.state === "wrong" && "answer-false",
+                a.state === "dim" && "answer-other",
               )}
             >
               <RichText text={a.t || "Вариант ответа"} />

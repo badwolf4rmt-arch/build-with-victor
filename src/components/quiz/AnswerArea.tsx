@@ -89,7 +89,7 @@ function Step({ id, n, size, disabled, state }: { id: string; n: number; size: "
         !disabled && "cursor-grab active:cursor-grabbing",
         isDragging && "relative z-10 shadow-card",
         state === "idle" && "border-answer-border",
-        state === "correct" && "border-success bg-success text-success-foreground",
+        state === "correct" && "answer-true-strong",
         state === "fixed" && "border-info bg-info",
       )}
     >
@@ -134,13 +134,13 @@ export function InputAnswer({
             "rounded-2xl border-2 bg-card px-4 text-center font-semibold outline-none focus:border-primary",
             size === "lg" ? "h-20 font-display text-xl" : "h-14 text-base",
             !reveal && "border-answer-border",
-            reveal && (ok ? "border-success bg-success text-success-foreground" : "border-destructive bg-destructive text-destructive-foreground"),
+            reveal && (ok ? "answer-true-strong" : "answer-false"),
           )}
         />
       )}
       {reveal && (!onCheck || !ok) ? (
         // Ученик ответил верно — его ответ в поле уже подсвечен зелёным, повторять его не нужно.
-        <div className={cn("flex items-center justify-center rounded-2xl border-2 border-success bg-success p-3 text-center font-semibold text-success-foreground", size === "lg" ? "min-h-20 font-display text-xl" : "min-h-14 text-base")}>
+        <div className={cn("flex items-center justify-center rounded-[24px] answer-true p-3 text-center font-semibold", size === "lg" ? "min-h-20 font-display text-xl" : "min-h-14 text-base")}>
           <RichText text={correct} />
         </div>
       ) : onCheck && !reveal ? (
