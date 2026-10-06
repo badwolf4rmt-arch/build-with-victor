@@ -3,12 +3,10 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { cn } from "@/lib/utils";
+import { normalizeMath } from "@/lib/math-notation";
+export { normalizeMath } from "@/lib/math-notation";
 
 /** Safe Markdown: raw HTML is never evaluated; both common LaTeX delimiters are supported. */
-export function normalizeMath(text: string) {
-  return text.replace(/\\\[([\s\S]*?)\\\]/g, (_, math: string) => `\n$$\n${math}\n$$\n`).replace(/\\\(([\s\S]*?)\\\)/g, (_, math: string) => `$${math}$`);
-}
-
 export function RichText({ text, className }: { text: string; className?: string }) {
   return <div className={cn("quiz-rich-text min-w-0 max-w-full", className)}>
     <ReactMarkdown remarkPlugins={[remarkGfm, remarkMath]} rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false, trust: false }]]} skipHtml components={{
