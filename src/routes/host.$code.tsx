@@ -8,7 +8,7 @@ import { FitToScreen } from "@/components/quiz/FitToScreen";
 import { InputAnswer, OrderAnswer } from "@/components/quiz/AnswerArea";
 import { kindOf, orderSteps } from "@/lib/question-kinds";
 import { optionsFor, sessionTeams, teamScores, TIME_LIMIT, updateSession, useLiveGame, type LiveAnswer, type LivePlayer } from "@/lib/live";
-import { QUESTION_POINTS } from "@/lib/game";
+import { questionPoints } from "@/lib/game";
 import bg from "@/assets/game-bg.jpg";
 import { LiveResults } from "@/components/quiz/LiveResults";
 import { RichText } from "@/components/quiz/RichText";
@@ -184,7 +184,7 @@ function SyncQuestion(props: {
         <QuestionCard
           text={q.text}
           image={q.image}
-          points={QUESTION_POINTS}
+          points={questionPoints(q)}
           answers={options.map((o) => ({ t: reveal ? `${o} — ${count(o)}` : o, state: !reveal ? "idle" : o === q.correct ? "correct" : "dim" }))}
           body={
             kindOf(q) === "choice" ? undefined : (

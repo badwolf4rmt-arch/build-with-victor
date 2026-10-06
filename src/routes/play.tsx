@@ -10,7 +10,7 @@ import { InputAnswer, OrderAnswer } from "@/components/quiz/AnswerArea";
 import { kindOf, orderSteps } from "@/lib/question-kinds";
 import { cn } from "@/lib/utils";
 import { getQuizItems, saveDraft, useQuizStore } from "@/lib/quiz-store";
-import { applyBonus, BONUSES, loadSetup, QUESTION_POINTS, type BonusId, type GameSetup, type Team } from "@/lib/game";
+import { applyBonus, BONUSES, loadSetup, questionPoints, type BonusId, type GameSetup, type Team } from "@/lib/game";
 import bg from "@/assets/game-bg.jpg";
 
 export const Route = createFileRoute("/play")({
@@ -71,7 +71,7 @@ function PlayPage() {
     if (!open) return;
     let next = teams;
     if (open.bonus) next = applyBonus(teams, turn, open.bonus);
-    else if (correct) next = teams.map((t, i) => (i === turn ? { ...t, score: t.score + QUESTION_POINTS } : t));
+    else if (correct) next = teams.map((t, i) => (i === turn ? { ...t, score: t.score + questionPoints(setup.items[open.q ?? -1] ?? {}) } : t));
     setTeams(next);
     const nextCells = cells.map((c) => (c.n === open.n ? { ...c, done: true } : c));
     setCells(nextCells);
@@ -148,7 +148,7 @@ function PlayPage() {
             <QuestionCard
               text={question.text}
               image={question.image}
-              points={QUESTION_POINTS}
+              points={questionPoints(question)}
               answers={options.map((opt) => ({
                 t: opt,
                 state: !picked ? "idle" : opt === question.correct ? "correct" : opt === picked ? "wrong" : "dim",
@@ -165,7 +165,7 @@ function PlayPage() {
                 picked ? (
                   <>
                     <p className="text-center font-display text-xl font-semibold">
-                      {ok ? `Верно! +${QUESTION_POINTS} баллов` : "Неверно — правильный ответ выделен зелёным"}
+                      {ok ? `Верно! +${questionPoints(question)} баллов` : "Неверно — правильный ответ выделен зелёным"}
                     </p>
                     <GradientButton onClick={() => resolve(ok)}>Дальше</GradientButton>
                   </>
