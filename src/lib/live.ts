@@ -17,6 +17,15 @@ export type LiveAnswer = Database["public"]["Tables"]["live_answers"]["Row"];
 /** Seconds a student has for one question in the synchronous (Kahoot-like) mode; also the cap for speed scoring. */
 export const TIME_LIMIT = 20;
 
+export function remainingSeconds(startedAt: number | null, now: number): number | null {
+  return startedAt === null ? null : Math.max(0, TIME_LIMIT - Math.floor(Math.max(0, now - startedAt) / 1000));
+}
+
+/** Equal scores share a place rather than depending on arrival order. */
+export function playerPlace(players: { score: number }[], score: number): number {
+  return 1 + players.filter((p) => p.score > score).length;
+}
+
 /**
  * Points for one answer. Wrong → 0. Without speed scoring → QUESTION_POINTS.
  * With speed scoring: QUESTION_POINTS for an instant answer, falling linearly to half at TIME_LIMIT (never below half).
@@ -59,7 +68,7 @@ export function sessionTeams(s: { teams?: unknown }): string[] {
   return Array.isArray(s.teams) ? (s.teams as string[]) : [];
 }
 
-export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean; teams: string[]; autoReveal: boolean }) {
+export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean; teams: string[]; autoReveal: boolean; showExplanations?: boolean; cover?: string }) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const { error } = await supabase.from("live_sessions").insert({
@@ -71,6 +80,8 @@ export async function createLiveSession(input: { quizId: string; title: string; 
       speed_scoring: input.speedScoring,
       teams: input.teams as never,
       auto_reveal: input.autoReveal,
+      show_explanations: input.showExplanations ?? false,
+      cover_url: input.cover ?? null,
     });
     if (!error) return code;
     if (error.code !== "23505") throw new Error(error.message);
