@@ -17,6 +17,11 @@ describe("ordering questions", () => {
 });
 
 describe("typed answers", () => {
+  it("compares plain student input with simple formatted math answers", () => {
+    expect(isInputCorrect("-1", "$-1$")).toBe(true);
+    expect(isInputCorrect("1/2", String.raw`\(\frac{1}{2}\)`)).toBe(true);
+    expect(isInputCorrect("2", "$-1$")).toBe(false);
+  });
   it("match ignoring case, ё and punctuation", () => expect(isInputCorrect("  Ёжик.", "ежик")).toBe(true));
   it("different word does not match", () => expect(isInputCorrect("заяц", "ежик")).toBe(false));
   it("empty answer is never correct", () => expect(isInputCorrect("", "")).toBe(false));

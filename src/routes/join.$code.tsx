@@ -158,6 +158,9 @@ export function Question(props: {
   const [ok, setOk] = useState(false);
   const kind = kindOf(q);
   const reveal = props.revealed || feedback;
+  const reviewedCorrect = props.revealed
+    ? kind === "input" ? isInputCorrect(picked ?? "", q.correct) : kind === "order" ? picked === orderSteps(q).join(ORDER_SEP) : picked === q.correct
+    : ok;
   const left = remainingSeconds(props.startedAt, now);
   const locked = busy || reveal || left === 0;
   useEffect(() => {
@@ -187,10 +190,10 @@ export function Question(props: {
     <RichText text={q.text} className="font-display text-xl font-semibold leading-7" />
     {q.image && <img src={q.image} alt="" className="aspect-[3/2] w-full rounded-2xl object-cover" />}
     {reveal ? <>
-      <p className={cn("font-display text-xl font-semibold", (props.revealed ? picked === q.correct || (kind === "order" && picked === orderSteps(q).join(ORDER_SEP)) : ok) ? "text-success" : "text-destructive")}>
-        {!picked ? "Нет ответа" : (props.revealed ? (kind === "input" ? undefined : picked === q.correct) : ok) === false ? "Неверно" : "Ответ принят"}{feedback && ok ? ` · +${points}` : ""}
+      <p className={cn("font-display text-xl font-semibold", reviewedCorrect ? "text-success" : "text-destructive")}>
+        {!picked ? "Нет ответа" : reviewedCorrect ? "Верно!" : "Неверно"}{feedback && ok ? ` · +${points}` : ""}
       </p>
-      <AnswerReview q={q} answer={picked ?? undefined} correct={props.revealed ? (kind === "input" ? isInputCorrect(picked ?? "", q.correct) : kind === "order" ? picked === orderSteps(q).join(ORDER_SEP) : picked === q.correct) : ok} showExplanation={props.showExplanation} />
+      <AnswerReview q={q} answer={picked ?? undefined} correct={reviewedCorrect} showExplanation={props.showExplanation} />
     </> : <>
       {kind === "order" && <OrderAnswer steps={orderSteps(q)} seed={index} size="sm" reveal={false} initial={picked ? picked.split(ORDER_SEP) : undefined} disabled={locked} checkLabel={label} onCheck={(o,c) => void send(o.join(ORDER_SEP),c)} />}
       {kind === "input" && <InputAnswer correct={q.correct} size="sm" reveal={false} initial={picked ?? undefined} disabled={locked} checkLabel={label} onCheck={(a,c) => void send(a.trim(),c)} />}

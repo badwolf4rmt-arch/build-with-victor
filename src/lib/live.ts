@@ -68,7 +68,7 @@ export function sessionTeams(s: { teams?: unknown }): string[] {
   return Array.isArray(s.teams) ? (s.teams as string[]) : [];
 }
 
-export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean; teams: string[]; autoReveal: boolean; showExplanations?: boolean; cover?: string }) {
+export async function createLiveSession(input: { quizId: string; title: string; items: GameQuestion[]; mode: LiveMode; speedScoring: boolean; teams: string[]; autoReveal: boolean; showExplanations?: boolean; cover?: string | undefined }) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const { error } = await supabase.from("live_sessions").insert({
