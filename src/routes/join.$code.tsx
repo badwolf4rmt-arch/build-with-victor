@@ -5,7 +5,7 @@ import { Check, Clock } from "lucide-react";
 import { RichText } from "@/components/quiz/RichText";
 import { AnswerReview } from "@/components/quiz/AnswerReview";
 import { LiveResults } from "@/components/quiz/LiveResults";
-import type { GameQuestion } from "@/lib/game";
+import { AVATARS, type GameQuestion } from "@/lib/game";
 import { cn } from "@/lib/utils";
 import { InputAnswer, OrderAnswer } from "@/components/quiz/AnswerArea";
 import { isInputCorrect, kindOf, ORDER_SEP, orderSteps } from "@/lib/question-kinds";
@@ -30,6 +30,8 @@ function JoinPage() {
   const { session, players, answers } = useLiveGame(code);
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const [avatar, setAvatar] = useState(() => AVATARS[Math.floor(Math.random() * AVATARS.length)]!);
+  const [pickingAvatar, setPickingAvatar] = useState(false);
   const [team, setTeam] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [selfIndex, setSelfIndex] = useState<number | null>(null);
@@ -60,7 +62,7 @@ function JoinPage() {
           if (!name.trim() || (teams.length > 0 && !team)) return;
           setBusy(true);
           try {
-            const p = await joinGame(code, name, team);
+            const p = await joinGame(code, name, team, avatar);
             localStorage.setItem(storeKey, p.id);
             setPlayerId(p.id);
           } finally {
@@ -70,14 +72,38 @@ function JoinPage() {
         className="flex flex-col gap-4"
       >
         <p className="font-display text-2xl font-semibold">{session.title}</p>
-        <input
-          autoFocus
-          value={name}
-          maxLength={30}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Ваше имя"
-          className="h-14 rounded-xl border border-border bg-card px-4 text-lg outline-none focus:border-primary"
-        />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setPickingAvatar((v) => !v)}
+            aria-label="Выбрать значок"
+            className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-3xl transition-transform hover:scale-105"
+          >
+            {avatar}
+          </button>
+          <input
+            autoFocus
+            value={name}
+            maxLength={30}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Имя ученика"
+            className="h-14 min-w-0 flex-1 rounded-full border border-border bg-card px-5 text-lg outline-none focus:border-primary"
+          />
+        </div>
+        {pickingAvatar && (
+          <div className="grid grid-cols-4 gap-2">
+            {AVATARS.map((a) => (
+              <button
+                type="button"
+                key={a}
+                onClick={() => { setAvatar(a); setPickingAvatar(false); }}
+                className={cn("flex size-14 items-center justify-center rounded-full text-3xl hover:bg-secondary", a === avatar ? "bg-accent ring-2 ring-primary" : "bg-secondary/50")}
+              >
+                {a}
+              </button>
+            ))}
+          </div>
+        )}
         {teams.length > 0 && (
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold">Выберите команду</p>
@@ -99,7 +125,7 @@ function JoinPage() {
   const total = session.items.length;
   const header = (
     <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
-      <span className="truncate font-semibold text-foreground">{me.name}{me.team ? ` · ${me.team}` : ""}</span>
+      <span className="truncate font-semibold text-foreground">{me.avatar ? `${me.avatar} ` : ""}{me.name}{me.team ? ` · ${me.team}` : ""}</span>
       <span>⭐ {me.score}</span>
     </div>
   );

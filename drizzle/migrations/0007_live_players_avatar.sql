@@ -1,0 +1,1 @@
+ALTER TABLE public.live_players ADD COLUMN IF NOT EXISTS avatar text;

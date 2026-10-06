@@ -50,6 +50,13 @@
       "when": 1791269622255,
       "tag": "0006_live_feedback_options",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791271140581,
+      "tag": "0007_live_players_avatar",
+      "breakpoints": true
     }
   ]
 }
