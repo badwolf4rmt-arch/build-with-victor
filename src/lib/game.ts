@@ -23,7 +23,12 @@ export const BONUSES: { id: BonusId; name: string; text: string; icon: string; i
 ];
 
 export type Team = { name: string; avatar: string; score: number };
-export type GameQuestion = { text: string; correct: string; incorrect: string[]; image?: string | undefined; kind?: QuestionKind | undefined; explanation?: string | undefined };
+export type GameQuestion = { text: string; correct: string; incorrect: string[]; image?: string | undefined; kind?: QuestionKind | undefined; explanation?: string | undefined; points?: number | undefined };
+
+/** Points a question is worth; falls back to the default when the quiz doesn't set it. */
+export function questionPoints(q: { points?: number | undefined }): number {
+  return q.points && q.points > 0 ? q.points : QUESTION_POINTS;
+}
 export type GameSetup = { quizId: string; title: string; questions: number; items: GameQuestion[]; teams: Team[]; bonuses: BonusId[] };
 
 const KEY = "quiz-game-setup";

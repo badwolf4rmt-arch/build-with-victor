@@ -30,11 +30,11 @@ export function playerPlace(players: { score: number }[], score: number): number
  * Points for one answer. Wrong → 0. Without speed scoring → QUESTION_POINTS.
  * With speed scoring: QUESTION_POINTS for an instant answer, falling linearly to half at TIME_LIMIT (never below half).
  */
-export function answerPoints(correct: boolean, speedScoring: boolean, elapsedMs: number): number {
+export function answerPoints(correct: boolean, speedScoring: boolean, elapsedMs: number, base: number = QUESTION_POINTS): number {
   if (!correct) return 0;
-  if (!speedScoring) return QUESTION_POINTS;
+  if (!speedScoring) return base;
   const t = Math.min(Math.max(elapsedMs / 1000, 0), TIME_LIMIT) / TIME_LIMIT;
-  return Math.max(Math.ceil(QUESTION_POINTS / 2), Math.round(QUESTION_POINTS * (1 - t / 2)));
+  return Math.max(Math.ceil(base / 2), Math.round(base * (1 - t / 2)));
 }
 
 /** An answer can change only before the correct answer is shown. */

@@ -255,7 +255,7 @@ export function pluralQuestions(n: number) {
 }
 
 export type QuestionImage = { src: string; name: string; type: string; size: number };
-export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined; kind?: QuestionKind | undefined; explanation?: string | undefined };
+export type DraftQuestion = { text: string; correct: string; incorrect: string[]; image?: QuestionImage | undefined; kind?: QuestionKind | undefined; explanation?: string | undefined; points?: number | undefined };
 export type Draft = {
   title: string;
   questions: DraftQuestion[];

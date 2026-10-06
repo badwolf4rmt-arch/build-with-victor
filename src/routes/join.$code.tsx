@@ -199,7 +199,7 @@ export function Question(props: {
   const send = async (answer: string, correct: boolean) => {
     if (locked) return;
     setBusy(true); setError("");
-    const pts = answerPoints(correct, props.speed, Date.now() - (props.startedAt ?? shownAt.current));
+    const pts = answerPoints(correct, props.speed, Date.now() - (props.startedAt ?? shownAt.current), questionPoints(q));
     try {
       const saved = await submitAnswer({ code: props.code, player: props.player, question: index, answer, correct, points: pts });
       if (!saved) { setError("Ответ не сохранён. Попробуйте ещё раз."); return; }
