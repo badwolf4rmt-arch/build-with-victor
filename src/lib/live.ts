@@ -129,8 +129,8 @@ export function useLiveGame(code: string) {
   return { session, players, answers, refresh };
 }
 
-export async function joinGame(code: string, name: string, team: string | null = null) {
-  const { data, error } = await supabase.from("live_players").insert({ session_code: code, name: name.trim().slice(0, 30), team }).select().single();
+export async function joinGame(code: string, name: string, team: string | null = null, avatar: string | null = null) {
+  const { data, error } = await supabase.from("live_players").insert({ session_code: code, name: name.trim().slice(0, 30), team, avatar }).select().single();
   if (error) throw new Error(error.message);
   return data;
 }
