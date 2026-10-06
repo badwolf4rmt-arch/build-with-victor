@@ -33,7 +33,7 @@ export function QuestionCard({
           <RichText text={text || "Текст вопроса"} className="text-center font-display text-[28px] font-semibold leading-9 md:text-[40px] md:leading-[48px]" />
           {image && <img src={image} alt="" className="aspect-[3/2] w-full rounded-3xl object-cover" />}
         </div>
-        {body ?? <div className="grid w-full gap-4 md:grid-cols-2">
+        {body ?? <div className={cn("grid w-full gap-4 md:grid-cols-2", answers.length === 3 && "md:grid-cols-3")}>
           {answers.map((a, i) => (
             <Button variant="ghost"
               key={i}
@@ -41,7 +41,7 @@ export function QuestionCard({
               disabled={!onAnswer}
               onClick={() => onAnswer?.(i)}
               className={cn(
-                "flex h-auto min-h-20 whitespace-normal items-center justify-center rounded-[24px] border-2 p-3 text-center font-display text-xl font-semibold leading-6 transition-colors disabled:cursor-default disabled:opacity-100",
+                "flex h-auto min-h-20 whitespace-normal items-center justify-center rounded-[24px] border-0 p-3 text-center font-display text-xl font-semibold leading-6 transition-colors disabled:cursor-default disabled:opacity-100",
                 a.state === "idle" && "answer-standard enabled:hover:answer-hover",
                 a.state === "correct" && "answer-true-strong",
                 a.state === "wrong" && "answer-false",
