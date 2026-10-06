@@ -159,8 +159,15 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
             </div>
 
             {way === "board" && who === "solo" && (
-              <div className="mt-8 flex items-center gap-3">
-                <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl"><FruitAvatar value={avatars[0]} className="size-full" /></span>
+              <div className="relative mt-8 flex items-center gap-3">
+                <button
+                  aria-label="Сменить аватар"
+                  onClick={() => setPicker(picker === -1 ? null : -1)}
+                  className="group relative flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl"
+                >
+                  <FruitAvatar value={avatars[0]} className="size-full" />
+                  <span className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/70 text-base text-card opacity-0 transition-opacity group-hover:opacity-100">✎</span>
+                </button>
                 <input
                   value={soloName}
                   maxLength={30}
@@ -168,6 +175,19 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                   placeholder="Имя ученика"
                   className="h-12 w-full rounded-xl border border-border bg-card px-4 text-sm outline-none focus:border-primary"
                 />
+                {picker === -1 && (
+                  <div className="absolute left-0 top-[72px] z-10 grid grid-cols-3 gap-3 rounded-2xl bg-card p-4 shadow-card">
+                    {AVATARS.map((a) => (
+                      <button
+                        key={a}
+                        onClick={() => { setAvatars((v) => [a, ...v.slice(1)]); setPicker(null); }}
+                        className={cn("flex size-16 items-center justify-center rounded-full text-4xl hover:bg-secondary", a === avatars[0] && "bg-accent")}
+                      >
+                        <FruitAvatar value={a} className="size-14" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
