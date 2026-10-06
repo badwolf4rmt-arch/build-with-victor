@@ -1,5 +1,5 @@
 import type { QuestionKind } from "./question-kinds";
-export const AVATARS = ["fruit:dragonfruit", "fruit:durian", "fruit:lemon", "fruit:lychee", "fruit:strawberry"];
+export const AVATARS = ["fruit:dragonfruit", "fruit:durian", "fruit:lemon", "fruit:lychee", "fruit:strawberry", "fruit:mangosteen", "fruit:pear"];
 
 export type BonusId = "generosity" | "like" | "magnet" | "theft" | "eraser" | "double" | "trap" | "rocket";
 
