@@ -128,7 +128,7 @@
   --game-card: #62bcfc;
   --game-card-line: #54b0f2;
   --game-card-empty: rgb(180 220 248 / 0.6);
-  --team-chip: #d6e7fc;
+  --team-chip: #d4efff;
   --score-star: #ffb800;
   --shadow-game-card: 0 2px 3px rgb(0 60 134 / 0.26), 0 7px 11px rgb(0 60 134 / 0.23);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -211,3 +211,11 @@
 .quiz-rich-text td, .quiz-rich-text th { border: 1px solid var(--border); padding: .3em .6em; }
 .quiz-rich-text blockquote { border-left: 3px solid var(--primary); padding-left: .8em; }
 .quiz-rich-text h1, .quiz-rich-text h2, .quiz-rich-text h3 { font-size: 1.15em; font-weight: 700; }
+
+/* Answer card states from Figma "Компоненты/answer" */
+@utility answer-standard { background-image: linear-gradient(180deg,#82c0ff,#5eaeff); color:#fff; border-color:transparent; }
+@utility answer-hover { background-image: linear-gradient(180deg,#4aa5ff,#3a9afb); color:#fff; border-color:transparent; }
+@utility answer-other { background-image: linear-gradient(180deg,#b7bfcb,#a7b3c3); color:#fff; border-color:transparent; }
+@utility answer-true { background-image: linear-gradient(180deg,#c5ffd3,#99f7b5); color:#000; border-color:transparent; }
+@utility answer-true-strong { background-image: linear-gradient(180deg,#1bce63,#2fc26a); color:#fff; border-color:transparent; }
+@utility answer-false { background-image: linear-gradient(180deg,#f86769,#ec4d4f); color:#fff; border-color:transparent; }

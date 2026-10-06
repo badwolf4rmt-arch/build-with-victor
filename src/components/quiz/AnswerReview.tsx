@@ -17,7 +17,7 @@ export function AnswerReview({ q, answer, correct, showExplanation = false, inde
     <p className="text-sm font-semibold">{kind === "order" ? "Правильный порядок" : correct && kind === "input" ? "Ваш ответ — верно" : "Правильный ответ"}</p>
     {choices.map((choice, i) => {
       const right = kind !== "choice" || choice === q.correct;
-      return <div key={`${i}-${choice}`} className={cn("flex min-h-14 items-center gap-3 rounded-2xl border-2 p-3", right ? "border-success bg-success-soft text-foreground" : "border-border text-muted-foreground")}>
+      return <div key={`${i}-${choice}`} className={cn("flex min-h-14 items-center gap-3 rounded-2xl border-2 p-3", right ? "answer-true" : "answer-other")}>
         {kind === "order" ? <span className="font-semibold">{i + 1}.</span> : right ? <Check className="size-5 shrink-0 text-success" /> : null}
         <RichText text={choice} className="flex-1 text-base font-semibold" />
       </div>;
