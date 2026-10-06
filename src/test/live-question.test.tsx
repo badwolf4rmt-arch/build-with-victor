@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Question } from "@/routes/join.$code";
 const { submit } = vi.hoisted(() => ({ submit: vi.fn().mockResolvedValue(true) }));
@@ -21,7 +21,7 @@ describe("student confirmation", () => {
     vi.useFakeTimers(); vi.setSystemTime(10000);
     render(<Question {...base} selfPaced={false} showFeedback={false} startedAt={10000} initialAnswer="4" q={{ text: "2 + 2?", correct: "4", incorrect: ["3"] }} />);
     expect(screen.getByRole("timer")).toHaveTextContent("20 с");
-    await vi.advanceTimersByTimeAsync(3000);
+    await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
     expect(screen.getByRole("timer")).toHaveTextContent("17 с");
   });
 });
