@@ -199,7 +199,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                     <p className="mt-2 text-sm text-muted-foreground">Не забудьте придумать им названия</p>
                   </div>
                   <div className="mt-1.5 flex gap-2">
-                    {[2, 3, 4, 5].map((n) => (
+                    {[1, 2, 3, 4, 5].map((n) => (
                       <button
                         key={n}
                         onClick={() => setCount(n)}
