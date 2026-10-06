@@ -5,6 +5,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isInputCorrect, isOrderCorrect, scrambled } from "@/lib/question-kinds";
+import { Button } from "@/components/ui/button";
+import { RichText } from "./RichText";
 
 /**
  * Drag-to-order answer. `reveal` shows the correct sequence and colours each step;
@@ -19,6 +21,7 @@ export function OrderAnswer({
   initial,
   size = "lg",
   checkLabel = "Проверить",
+  disabled = false,
 }: {
   steps: string[];
   seed: number;
@@ -28,6 +31,7 @@ export function OrderAnswer({
   initial?: string[] | undefined;
   size?: "lg" | "sm";
   checkLabel?: string;
+  disabled?: boolean;
 }) {
   const [order, setOrder] = useState<string[]>(() => (initial?.length === steps.length ? initial : scrambled(steps, seed)));
   useEffect(() => setOrder(initial?.length === steps.length ? initial : scrambled(steps, seed)), [steps.join("|"), seed]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -50,22 +54,22 @@ export function OrderAnswer({
         <SortableContext items={shown} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-2">
             {shown.map((s, i) => (
-              <Step key={s} id={s} n={i + 1} size={size} disabled={reveal} state={!reveal ? "idle" : order[i] === s ? "correct" : "fixed"} />
+              <Step key={s} id={s} n={i + 1} size={size} disabled={reveal || disabled} state={!reveal ? "idle" : order[i] === s ? "correct" : "fixed"} />
             ))}
           </div>
         </SortableContext>
       </DndContext>
       {onCheck && !reveal && (
-        <button
+        <Button disabled={disabled}
           type="button"
           onClick={() => onCheck(order, isOrderCorrect(order, steps))}
           className={cn(
-            "bg-action-gradient flex flex-wrap items-center justify-center gap-1 rounded-[24px] font-display font-semibold text-primary-foreground hover:opacity-95",
+            "bg-action-gradient flex h-auto whitespace-normal flex-wrap items-center justify-center gap-1 rounded-[24px] font-display font-semibold text-primary-foreground hover:opacity-95",
             size === "lg" ? "min-h-20 px-6 py-4 text-xl" : "min-h-14 px-4 py-3 text-base",
           )}
         >
           {checkLabel}
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -90,7 +94,7 @@ function Step({ id, n, size, disabled, state }: { id: string; n: number; size: "
       )}
     >
       <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm text-foreground">{n}</span>
-      <span className="flex-1 py-2">{id}</span>
+      <RichText text={id} className="flex-1 py-2" />
       {!disabled && <GripVertical className="size-5 shrink-0 text-muted-foreground" />}
     </div>
   );
@@ -104,6 +108,7 @@ export function InputAnswer({
   initial,
   size = "lg",
   checkLabel = "Проверить",
+  disabled = false,
 }: {
   correct: string;
   reveal: boolean;
@@ -111,6 +116,7 @@ export function InputAnswer({
   initial?: string | undefined;
   size?: "lg" | "sm";
   checkLabel?: string;
+  disabled?: boolean;
 }) {
   const [value, setValue] = useState(initial ?? "");
   const ok = isInputCorrect(value, correct);
@@ -119,10 +125,10 @@ export function InputAnswer({
       {onCheck && (
         <input
           value={value}
-          disabled={reveal}
+          disabled={reveal || disabled}
           maxLength={200}
           onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && value.trim() && onCheck(value, ok)}
+          onKeyDown={(e) => !reveal && !disabled && e.key === "Enter" && value.trim() && onCheck(value, ok)}
           placeholder="Впишите ответ"
           className={cn(
             "rounded-2xl border-2 bg-card px-4 text-center font-semibold outline-none focus:border-primary",
@@ -135,25 +141,25 @@ export function InputAnswer({
       {reveal && (!onCheck || !ok) ? (
         // Ученик ответил верно — его ответ в поле уже подсвечен зелёным, повторять его не нужно.
         <div className={cn("flex items-center justify-center rounded-2xl border-2 border-success bg-success p-3 text-center font-semibold text-success-foreground", size === "lg" ? "min-h-20 font-display text-xl" : "min-h-14 text-base")}>
-          {correct}
+          <RichText text={correct} />
         </div>
-      ) : onCheck ? (
-        <button
+      ) : onCheck && !reveal ? (
+        <Button
           type="button"
-          disabled={!value.trim()}
+          disabled={disabled || !value.trim()}
           onClick={() => onCheck(value, ok)}
           className={cn(
-            "bg-action-gradient flex flex-wrap items-center justify-center gap-1 rounded-[24px] font-display font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-50",
+            "bg-action-gradient flex h-auto whitespace-normal flex-wrap items-center justify-center gap-1 rounded-[24px] font-display font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-50",
             size === "lg" ? "min-h-20 px-6 py-4 text-xl" : "min-h-14 px-4 py-3 text-base",
           )}
         >
           {checkLabel}
-        </button>
-      ) : (
+        </Button>
+      ) : !reveal ? (
         <div className={cn("flex items-center justify-center rounded-2xl border-2 border-dashed border-answer-border p-3 text-center text-muted-foreground", size === "lg" ? "min-h-20 font-display text-xl" : "min-h-14 text-base")}>
           Ответ вписывают ученики
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -430,6 +430,10 @@ function Editor() {
                   />
                 </div>
               )}
+              <label className="mt-6 block max-w-[850px] text-sm font-semibold">
+                Комментарий к правильному ответу (необязательно)
+                <textarea value={q.explanation ?? ""} onChange={(e) => updateQ(i, { explanation: e.target.value })} rows={3} className="mt-3 w-full rounded-xl border border-border bg-card p-4 text-base font-normal outline-none focus:border-primary" />
+              </label>
             </div>
           ))}
           <button

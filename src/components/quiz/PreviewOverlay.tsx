@@ -8,6 +8,7 @@ import { ScoreStar } from "./GameArt";
 import { GradientButton, QuestionCard } from "./QuestionCard";
 import { InputAnswer, OrderAnswer } from "./AnswerArea";
 import { kindOf, KINDS, orderSteps } from "@/lib/question-kinds";
+import { RichText } from "./RichText";
 
 /** Full-page quiz preview (Figma «1920 Полная страница»): question card, pagination and the list of questions. */
 export function PreviewOverlay({
@@ -137,9 +138,9 @@ export function PreviewOverlay({
                   )}
                 >
                   <span className="flex flex-col gap-3">
-                    <span className="font-display text-xl font-semibold leading-6">{it.text || "Без текста"}</span>
+                    <RichText text={it.text || "Без текста"} className="font-display text-xl font-semibold leading-6" />
                     <span className="text-sm text-muted-foreground">{KINDS.find((k) => k.id === kindOf(it))?.name}</span>
-                    {showAnswers && it.correct && <span className="text-base leading-5">{kindOf(it) === "order" ? orderSteps(it).join(" → ") : it.correct}</span>}
+                    {showAnswers && it.correct && <RichText text={kindOf(it) === "order" ? orderSteps(it).join(" → ") : it.correct} className="text-base leading-5" />}
                   </span>
                   <span className="flex items-center gap-2 text-sm font-semibold">
                     <ScoreStar className="size-6 text-score-star" /> {QUESTION_POINTS}
