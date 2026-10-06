@@ -159,12 +159,16 @@ function Index() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+          {!loaded &&
+            Array.from({ length: 4 }, (_, i) => (
+              <div key={i} aria-hidden className="h-[180px] animate-pulse rounded-2xl bg-card" />
+            ))}
           {visible.map((q) => (
             <QuizCard key={q.id} quiz={q} onDelete={deleteQuiz} />
           ))}
         </div>
 
-        {visible.length === 0 && (
+        {loaded && visible.length === 0 && (
           <p className="mt-10 text-center text-sm text-muted-foreground">
             {search
               ? "По вашему запросу ничего не найдено"
