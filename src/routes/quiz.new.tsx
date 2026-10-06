@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateQuestionImage } from "@/lib/quiz-image.functions";
 import { regenerateQuestion } from "@/lib/quiz-ai.functions";
 import { KINDS, kindOf, switchKind, type QuestionKind } from "@/lib/question-kinds";
+import { QUESTION_POINTS } from "@/lib/game";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";

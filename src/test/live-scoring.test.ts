@@ -16,6 +16,8 @@ describe("live game scoring", () => {
   it("fixed scoring ignores time", () => expect(answerPoints(true, false, 19000)).toBe(5));
   it("speed scoring: instant answer gets full points", () => expect(answerPoints(true, true, 0)).toBe(5));
   it("speed scoring: slow answer gets half (rounded up)", () => expect(answerPoints(true, true, 60000)).toBe(3));
+  it("custom question points: fixed scoring gives the question's points", () => expect(answerPoints(true, false, 5000, 10)).toBe(10));
+  it("custom question points: speed scoring falls to half of the question's points", () => expect(answerPoints(true, true, 60000, 10)).toBe(5));
 });
 
 describe("option order", () => {
