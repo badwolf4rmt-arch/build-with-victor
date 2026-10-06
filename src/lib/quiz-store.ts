@@ -172,11 +172,15 @@ const fail = () => toast.error("Не удалось сохранить изме�
 
 /** Shared library: everyone sees the same quizzes, covers and folders; live-updates when someone changes them. */
 export function useQuizStore() {
-  const [state, setState] = useState<State>({ quizzes: SEED_QUIZZES, folders: SEED_FOLDERS });
+  // Start empty: showing demo data first made outdated quizzes flash before the cloud answered.
+  const [state, setState] = useState<State>({ quizzes: [], folders: [] });
+  const [loaded, setLoaded] = useState(false);
 
   const refresh = useCallback(async () => {
     const next = await fetchLibrary();
     if (next) setState(next);
+    else setState((s) => (s.quizzes.length ? s : { quizzes: SEED_QUIZZES, folders: SEED_FOLDERS }));
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -185,7 +189,8 @@ export function useQuizStore() {
       clearTimeout(timer);
       timer = setTimeout(() => void refresh(), 300);
     };
-    void migrateLocalQuizzes().finally(() => void refresh());
+    void refresh();
+    void migrateLocalQuizzes().then(() => void refresh());
     const channel = supabase
       .channel("quiz-library")
       .on("postgres_changes", { event: "*", schema: "public", table: "quizzes" }, later)
@@ -238,7 +243,7 @@ export function useQuizStore() {
     [state.folders],
   );
 
-  return { ...state, createFolder, updateFolder, deleteFolder, deleteQuiz };
+  return { ...state, loaded, createFolder, updateFolder, deleteFolder, deleteQuiz };
 }
 
 export function pluralQuestions(n: number) {
