@@ -1,3 +1,4 @@
+import { FruitAvatar } from "@/components/quiz/FruitAvatar";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pencil, X } from "lucide-react";
@@ -109,7 +110,7 @@ function PlayPage() {
                 i === turn ? "bg-team-chip" : "bg-card",
               )}
             >
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-team-chip text-2xl lg:size-14 lg:text-3xl">{t.avatar}</span>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-team-chip text-2xl lg:size-14 lg:text-3xl"><FruitAvatar value={t.avatar} className="size-full" /></span>
               <div className="min-w-0">
                 <p className="flex items-center gap-1 font-display text-lg font-semibold leading-6 lg:text-2xl lg:leading-8">
                   <ScoreStar className="size-6 text-score-star lg:size-8" />
@@ -190,7 +191,7 @@ function PlayPage() {
           {ranking.map((t, i) => (
             <li key={i} className="flex items-center gap-3 rounded-2xl bg-secondary px-4 py-3">
               <span className="w-5 font-semibold">{i + 1}</span>
-              <span className="text-2xl">{t.avatar}</span>
+              <FruitAvatar value={t.avatar} className="size-8 text-2xl" />
               <span className="flex-1">{t.name}</span>
               <span className="font-bold">{t.score}</span>
             </li>

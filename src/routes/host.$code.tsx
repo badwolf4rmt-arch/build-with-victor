@@ -1,3 +1,4 @@
+import { FruitAvatar } from "@/components/quiz/FruitAvatar";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
@@ -107,7 +108,7 @@ function HostPage() {
               <p className="font-display text-2xl font-semibold">Подключились: {players.length}</p>
               <div className="mt-4 flex flex-1 flex-wrap content-start gap-2">
                 {players.map((p) => (
-                  <span key={p.id} className="rounded-full bg-secondary px-4 py-2 text-base font-semibold">{p.avatar ? `${p.avatar} ` : ""}{p.name}{p.team ? ` · ${p.team}` : ""}</span>
+                  <span key={p.id} className="rounded-full bg-secondary px-4 py-2 text-base font-semibold">{p.avatar && <FruitAvatar value={p.avatar} className="mr-1 inline-block size-6 align-middle" />}{p.name}{p.team ? ` · ${p.team}` : ""}</span>
                 ))}
                 {!players.length && <p className="text-muted-foreground">Ждём учеников…</p>}
               </div>
@@ -201,7 +202,7 @@ function SyncQuestion(props: {
                   {props.teams.length > 0 ? props.teams.map((t, i) => (
                     <span key={t.name} className="rounded-full bg-secondary px-4 py-2 font-semibold">{i + 1}. {t.name} — {t.score}</span>
                   )) : props.ranking.slice(0, 5).map((p, i) => (
-                    <span key={p.id} className="rounded-full bg-secondary px-4 py-2 font-semibold">{i + 1}. {p.avatar ? `${p.avatar} ` : ""}{p.name} — {p.score}</span>
+                    <span key={p.id} className="rounded-full bg-secondary px-4 py-2 font-semibold">{i + 1}. {p.avatar && <FruitAvatar value={p.avatar} className="mr-1 inline-block size-6 align-middle" />}{p.name} — {p.score}</span>
                   ))}
                 </div>
                 <GradientButton onClick={props.onNext}>{index + 1 < props.total ? "Следующий вопрос" : "Итоги"}</GradientButton>

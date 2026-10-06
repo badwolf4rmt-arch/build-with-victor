@@ -1,3 +1,4 @@
+import { FruitAvatar } from "@/components/quiz/FruitAvatar";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Settings, X } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -159,7 +160,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
 
             {way === "board" && who === "solo" && (
               <div className="mt-8 flex items-center gap-3">
-                <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl">{avatars[0]}</span>
+                <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl"><FruitAvatar value={avatars[0]} className="size-full" /></span>
                 <input
                   value={soloName}
                   maxLength={30}
@@ -198,7 +199,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                         onClick={() => setPicker(picker === i ? null : i)}
                         className="group relative flex size-16 shrink-0 items-center justify-center rounded-full bg-secondary text-4xl"
                       >
-                        {avatars[i]}
+                        <FruitAvatar value={avatars[i]} className="size-full" />
                         <span className="absolute inset-0 flex items-center justify-center rounded-full bg-foreground/70 text-base text-card opacity-0 transition-opacity group-hover:opacity-100">✎</span>
                       </button>
                       <input
@@ -215,7 +216,7 @@ function SetupCurtain({ quiz, open, onClose }: { quiz: Quiz; open: boolean; onCl
                               onClick={() => { setAvatars((v) => v.map((x, j) => (j === i ? a : x))); setPicker(null); }}
                               className={cn("flex size-16 items-center justify-center rounded-full text-4xl hover:bg-secondary", a === avatars[i] && "bg-accent")}
                             >
-                              {a}
+                              <FruitAvatar value={a} className="size-14" />
                             </button>
                           ))}
                         </div>
