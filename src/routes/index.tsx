@@ -45,7 +45,7 @@ const BASE_TABS = [
 ] as const;
 
 function Index() {
-  const { quizzes, folders, createFolder, updateFolder, deleteFolder, deleteQuiz } = useQuizStore();
+  const { quizzes, folders, loaded, createFolder, updateFolder, deleteFolder, deleteQuiz } = useQuizStore();
   const [tab, setTab] = useState<string>("all");
   const search = "";
   const navigate = useNavigate();
