@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { generateQuestionImage } from "@/lib/quiz-image.functions";
 import { regenerateQuestion } from "@/lib/quiz-ai.functions";
 import { KINDS, kindOf, switchKind, type QuestionKind } from "@/lib/question-kinds";
+import { QUESTION_POINTS } from "@/lib/game";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { AddImageFlow, formatSize, ReplaceImageModal } from "@/components/quiz/QuestionImageDialogs";
@@ -264,6 +265,21 @@ function Editor() {
                       {KINDS.map((k) => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                  <label className="flex h-9 items-center gap-1.5 rounded-xl bg-card px-3 text-sm">
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      aria-label="Баллы за вопрос"
+                      value={q.points ?? QUESTION_POINTS}
+                      onChange={(e) => {
+                        const v = Math.max(1, Math.min(100, Math.round(Number(e.target.value) || QUESTION_POINTS)));
+                        setQuiz((s) => ({ ...s, questions: s.questions.map((x, j) => (j === i ? { ...x, points: v } : x)) }));
+                      }}
+                      className="w-10 bg-transparent text-center font-semibold outline-none"
+                    />
+                    <span className="text-muted-foreground">баллов</span>
+                  </label>
                 </div>
                 <div className="flex items-center gap-3">
                 <DropdownMenu>

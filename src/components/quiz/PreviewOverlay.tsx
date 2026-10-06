@@ -2,7 +2,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Pencil, Play } from "lucide-react
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { QUESTION_POINTS } from "@/lib/game";
+import { questionPoints } from "@/lib/game";
 import type { DraftQuestion } from "@/lib/quiz-store";
 import { ScoreStar } from "./GameArt";
 import { GradientButton, QuestionCard } from "./QuestionCard";
@@ -92,7 +92,7 @@ export function PreviewOverlay({
               <QuestionCard
                 text={q.text}
                 image={q.image?.src}
-                points={QUESTION_POINTS}
+                points={questionPoints(q)}
                 answers={answers.map((a) => ({ t: a.t, state: !reveal ? "idle" : a.ok ? "correct" : "dim" }))}
                 body={
                   kindOf(q) === "order" ? <OrderAnswer key={active} steps={orderSteps(q)} seed={active + 1} reveal={reveal} />
@@ -143,7 +143,7 @@ export function PreviewOverlay({
                     {showAnswers && it.correct && <RichText text={kindOf(it) === "order" ? orderSteps(it).join(" → ") : it.correct} className="text-base leading-5" />}
                   </span>
                   <span className="flex items-center gap-2 text-sm font-semibold">
-                    <ScoreStar className="size-6 text-score-star" /> {QUESTION_POINTS}
+                    <ScoreStar className="size-6 text-score-star" /> {questionPoints(it)}
                   </span>
                 </button>
               </li>
