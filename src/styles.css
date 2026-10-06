@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "katex/dist/katex.min.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -198,3 +199,15 @@
 @utility bg-action-gradient {
   background-image: var(--gradient-action);
 }
+
+.quiz-rich-text { overflow-wrap: anywhere; }
+.quiz-rich-text p { margin: 0; }
+.quiz-rich-text p + p { margin-top: .6em; }
+.quiz-rich-text ul { list-style: disc; padding-left: 1.3em; }
+.quiz-rich-text ol { list-style: decimal; padding-left: 1.3em; }
+.quiz-rich-text pre, .quiz-rich-text .katex-display { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+.quiz-rich-text .katex { font-size: 1.1em; }
+.quiz-rich-text table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.quiz-rich-text td, .quiz-rich-text th { border: 1px solid var(--border); padding: .3em .6em; }
+.quiz-rich-text blockquote { border-left: 3px solid var(--primary); padding-left: .8em; }
+.quiz-rich-text h1, .quiz-rich-text h2, .quiz-rich-text h3 { font-size: 1.15em; font-weight: 700; }
