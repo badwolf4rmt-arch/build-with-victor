@@ -1,3 +1,4 @@
+import { FruitAvatar } from "@/components/quiz/FruitAvatar";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -79,7 +80,7 @@ function JoinPage() {
             aria-label="Выбрать значок"
             className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-3xl transition-transform hover:scale-105"
           >
-            {avatar}
+            <FruitAvatar value={avatar} className="size-full" />
           </button>
           <input
             autoFocus
@@ -99,7 +100,7 @@ function JoinPage() {
                 onClick={() => { setAvatar(a); setPickingAvatar(false); }}
                 className={cn("flex size-14 items-center justify-center rounded-full text-3xl hover:bg-secondary", a === avatar ? "bg-accent ring-2 ring-primary" : "bg-secondary/50")}
               >
-                {a}
+                <FruitAvatar value={a} className="size-12" />
               </button>
             ))}
           </div>
@@ -125,7 +126,7 @@ function JoinPage() {
   const total = session.items.length;
   const header = (
     <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
-      <span className="truncate font-semibold text-foreground">{me.avatar ? `${me.avatar} ` : ""}{me.name}{me.team ? ` · ${me.team}` : ""}</span>
+      <span className="truncate font-semibold text-foreground">{me.avatar && <FruitAvatar value={me.avatar} className="mr-1 inline-block size-6 align-middle" />}{me.name}{me.team ? ` · ${me.team}` : ""}</span>
       <span>⭐ {me.score}</span>
     </div>
   );
